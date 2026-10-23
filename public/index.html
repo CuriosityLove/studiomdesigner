@@ -1,0 +1,662 @@
+<title>Studio M Design</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap">
+<style>
+/* Layout: a strict 12-column editorial grid. Black hairlines and heavy rules carry the structure; product plates sit on white paper; one red mark for plate numbers. */
+:root{
+  --paper:#ffffff; --ink:#1b1b1b; --mute:#6e6d69; --hair:#e3e1dc; --wash:#f5f4f1;
+  --accent:#b3141c; --plate:#ffffff; --plate-ink:#1b1b1b;
+  --sans:"Jost","sofia-pro","Futura","Avenir Next","Helvetica Neue",Arial,sans-serif;
+  --step--1:.75rem; --step-0:.95rem; --step-1:1.15rem; --step-2:1.6rem; --step-3:2.4rem; --step-4:clamp(2.4rem,6.2vw,5.2rem);
+  --track:.28em; --gut:max(16px,env(safe-area-inset-left,0px)); --gut-r:max(16px,env(safe-area-inset-right,0px));
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#111110;--ink:#f1efea;--mute:#9b9994;--hair:#2b2a28;--wash:#191918;--accent:#e2554c;color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#111110;--ink:#f1efea;--mute:#9b9994;--hair:#2b2a28;--wash:#191918;--accent:#e2554c;color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-weight:300;font-size:var(--step-0);line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1320px;margin:0 auto;padding-left:var(--gut);padding-right:var(--gut-r)}
+.label{font-size:var(--step--1);font-weight:500;letter-spacing:var(--track);text-transform:uppercase}
+.mute{color:var(--mute)}
+.num{font-variant-numeric:tabular-nums}
+
+/* masthead */
+.mast{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);border-bottom:1px solid var(--hair)}
+.mast .wrap{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:64px}
+.wordmark{font-weight:400;font-size:1.25rem;letter-spacing:.32em;text-transform:uppercase;white-space:nowrap}
+.wordmark i{font-style:normal;display:inline-block;width:.32em;height:.32em;border-radius:50%;background:var(--ink);vertical-align:middle;margin:0 .14em 0 .02em;transform:translateY(-.06em)}
+.mast .r{justify-self:end}
+.mast .l{justify-self:start}
+
+/* intro */
+.intro{padding-block:56px 40px;display:grid;grid-template-columns:repeat(12,1fr);gap:24px;border-bottom:3px solid var(--ink)}
+.intro h1{grid-column:1/9;font-weight:200;font-size:var(--step-4);line-height:1.02;letter-spacing:-.01em;margin:16px 0 0;text-wrap:balance}
+.intro p{grid-column:9/13;align-self:end;margin:0;max-width:34ch;color:var(--mute)}
+.intro .label{grid-column:1/-1}
+
+/* brief builder */
+.brief{display:grid;grid-template-columns:repeat(12,1fr);gap:24px 24px;padding-block:40px}
+.brief .text{grid-column:1/6;display:flex;flex-direction:column;gap:16px;min-width:0}
+.brief .opts{grid-column:7/13;display:flex;flex-direction:column;gap:24px;min-width:0}
+textarea#brief{width:100%;min-height:200px;resize:vertical;border:0;border-top:1px solid var(--ink);border-bottom:1px solid var(--hair);background:transparent;padding:16px 0;font-size:var(--step-2);font-weight:200;line-height:1.3}
+textarea#brief:focus{outline:none;border-bottom-color:var(--ink)}
+.group{display:grid;grid-template-columns:132px 1fr;gap:12px;align-items:start;border-top:1px solid var(--hair);padding-top:12px}
+.group .label{padding-top:7px;color:var(--mute)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--hair);background:transparent;padding:6px 11px;font-size:.8rem;letter-spacing:.06em;cursor:pointer;transition:background .15s,border-color .15s,color .15s}
+.chip:hover{border-color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.uploads{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.drop{border:1px dashed var(--mute);padding:14px;display:flex;flex-direction:column;gap:6px;cursor:pointer;min-height:96px;position:relative}
+.drop:hover{border-color:var(--ink)}
+.drop input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.drop .thumbs{display:flex;gap:6px;flex-wrap:wrap}
+.drop .thumbs img{width:44px;height:44px;object-fit:cover}
+.drop small{color:var(--mute);font-size:.78rem}
+.go{display:flex;align-items:center;gap:20px;flex-wrap:wrap;margin-top:4px}
+.btn{background:var(--ink);color:var(--paper);border:1px solid var(--ink);padding:15px 26px;cursor:pointer;font-size:var(--step--1);font-weight:500;letter-spacing:var(--track);text-transform:uppercase}
+.btn:hover{background:transparent;color:var(--ink)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.ghost:hover{background:var(--ink);color:var(--paper)}
+.btn[disabled]{opacity:.45;cursor:progress}
+.status{font-size:.85rem;color:var(--mute);min-height:1.4em}
+.status b{font-weight:500;color:var(--ink)}
+
+/* package */
+#package{border-top:3px solid var(--ink)}
+.cover{display:grid;grid-template-columns:repeat(12,1fr);gap:24px;padding-block:40px 56px}
+.cover .meta{grid-column:1/-1;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.cover h2{grid-column:1/8;font-weight:200;font-size:var(--step-4);line-height:1.02;margin:24px 0 0;text-wrap:balance}
+.cover .quote{grid-column:1/7;font-size:var(--step-1);font-weight:300;margin:0;border-left:3px solid var(--ink);padding-left:18px;max-width:52ch}
+.cover figure{grid-column:8/13;grid-row:2/5;margin:0;display:flex;flex-direction:column;gap:10px}
+.plate{background:var(--plate);aspect-ratio:4/5;display:flex;align-items:center;justify-content:center;overflow:hidden;max-width:100%}
+.plate img{width:84%;height:84%;object-fit:contain;mix-blend-mode:multiply}
+figcaption{font-size:.8rem;color:var(--mute);display:flex;gap:10px}
+.pn{color:var(--accent);font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:.06em}
+
+.section{display:grid;grid-template-columns:repeat(12,1fr);gap:24px;padding-block:44px;border-top:1px solid var(--ink)}
+.section > .label{grid-column:1/4}
+.section > .body{grid-column:4/13;min-width:0}
+.thesis{font-size:var(--step-2);font-weight:200;line-height:1.35;margin:0;max-width:40ch;text-wrap:pretty}
+.principles{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:36px}
+.principles div{border-top:3px solid var(--ink);padding-top:12px}
+.principles h4{margin:0 0 8px;font-weight:500;font-size:var(--step-0)}
+.principles p{margin:0;color:var(--mute);font-size:.92rem}
+
+.palette{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:20px}
+.sw{display:flex;flex-direction:column;gap:8px}
+.sw span{display:block;aspect-ratio:1;border:1px solid var(--hair)}
+.sw b{font-weight:400;font-size:.85rem}
+.sw small{color:var(--mute);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase}
+.kelvin{margin-top:28px;display:flex;gap:28px;flex-wrap:wrap;font-size:.9rem}
+.kelvin strong{font-weight:400;font-size:var(--step-2);display:block}
+
+.sheet{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:28px 20px}
+.sheet a{text-decoration:none;display:flex;flex-direction:column;gap:8px}
+.sheet .plate{aspect-ratio:1}
+.sheet .t{display:flex;justify-content:space-between;gap:8px;font-size:.78rem}
+.sheet .n{font-size:.88rem;font-weight:400;line-height:1.3}
+.sheet .c{font-size:.75rem;color:var(--mute);letter-spacing:.12em;text-transform:uppercase}
+
+.room{display:grid;grid-template-columns:repeat(12,1fr);gap:24px;padding-block:48px;border-top:1px solid var(--ink);break-inside:avoid}
+.room header{grid-column:1/5;display:flex;flex-direction:column;gap:14px;min-width:0}
+.room h3{margin:0;font-weight:200;font-size:var(--step-3);line-height:1.05}
+.room header p{margin:0;color:var(--mute);max-width:38ch}
+.room .items{grid-column:5/13;display:flex;flex-direction:column;min-width:0}
+.item{display:grid;grid-template-columns:150px 1fr;gap:22px;padding-block:20px;border-top:1px solid var(--hair)}
+.item:first-child{border-top:0;padding-top:0}
+.item .plate{aspect-ratio:1}
+.item .info{display:flex;flex-direction:column;gap:6px;min-width:0}
+.item .top{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap}
+.item h5{margin:0;font-size:var(--step-1);font-weight:400}
+.item .why{margin:0;max-width:60ch}
+.item .spec{font-size:.78rem;color:var(--mute);display:flex;gap:6px 16px;flex-wrap:wrap}
+.item .acts{display:flex;gap:16px;margin-top:4px}
+.link{background:none;border:0;padding:0;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;font-weight:500;cursor:pointer;text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px}
+.qty{font-variant-numeric:tabular-nums;font-weight:500}
+.layer{font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;border:1px solid var(--ink);padding:2px 7px}
+
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.84rem}
+th{font-weight:500;text-align:left;font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;border-bottom:2px solid var(--ink);padding:8px 10px 8px 0;white-space:nowrap}
+td{border-bottom:1px solid var(--hair);padding:9px 10px 9px 0;vertical-align:top}
+.matrix td{min-width:120px}
+.matrix td:first-child{font-weight:400;min-width:140px}
+.matrix .pn{margin-right:8px}
+.colophon{padding-block:36px 64px;border-top:3px solid var(--ink);display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;color:var(--mute);font-size:.82rem}
+.toolbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.note{font-size:.8rem;color:var(--mute)}
+.fade{animation:fade .5s ease both}
+@keyframes fade{from{opacity:.25}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.fade{animation:none}}
+
+@media (max-width:900px){
+  .intro h1,.intro p,.brief .text,.brief .opts,.cover h2,.cover .quote,.cover figure,.section > .label,.section > .body,.room header,.room .items{grid-column:1/-1}
+  .cover figure{grid-row:auto}
+  .principles{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .group{grid-template-columns:1fr}
+  .uploads{grid-template-columns:1fr}
+  .item{grid-template-columns:96px 1fr;gap:14px}
+  .wordmark{font-size:1rem}
+  .mast .l{display:none}
+}
+@media print{
+  :root{--paper:#fff;--ink:#111;--mute:#555;--hair:#ddd}
+  .mast,.intro,.brief,.toolbar,.acts,#brief-anchor{display:none!important}
+  #package{border-top:0}
+  .room,.section{break-inside:avoid}
+  .cover{break-after:page}
+  body{font-size:10.5pt}
+  @page{margin:14mm}
+}
+</style>
+
+<header class="mast">
+  <div class="wrap">
+    <span class="label l mute">Design</span>
+    <span class="wordmark" aria-label="Studio M">STUDIO<i></i>M</span>
+    <span class="label r mute">Lighting Packages</span>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="intro">
+    <span class="label mute">Studio M · Design</span>
+    <h1>Describe the house. We compose the light.</h1>
+    <p>Tell us about the architecture, the place and the people. We read Studio M's collection, from finishes and materials to each piece's own story, and assemble a lighting package room by room.</p>
+  </section>
+
+  <section class="brief" id="brief-anchor" aria-label="Project brief">
+    <div class="text">
+      <label class="label" for="brief">The brief</label>
+      <textarea id="brief" placeholder="A modern classical Mediterranean home in the Midwest…"></textarea>
+      <div class="uploads" id="uploads" hidden>
+        <label class="drop" for="mood">
+          <span class="label">Mood images</span>
+          <small>Inspiration, materials, art. Up to 4 images.</small>
+          <div class="thumbs" id="moodThumbs"></div>
+          <input type="file" id="mood" accept="image/*" multiple>
+        </label>
+        <label class="drop" for="plan">
+          <span class="label">Floor plan</span>
+          <small>An image of the plan. We'll read the rooms from it.</small>
+          <div class="thumbs" id="planThumbs"></div>
+          <input type="file" id="plan" accept="image/*">
+        </label>
+      </div>
+      <div class="go">
+        <button class="btn" id="compose">Compose the package</button>
+        <span class="status" id="status" role="status"></span>
+      </div>
+    </div>
+    <div class="opts" id="opts"></div>
+  </section>
+
+  <article id="package" aria-live="polite"></article>
+</main>
+
+<script src="catalog.js"></script>
+<script src="compose-prompt.js"></script>
+<script>if (window.claude) { const s = document.createElement('script'); s.src = 'plates.js'; s.async = true; document.head.appendChild(s); }</script>
+<script>
+(() => {
+const CAT = window.SM_CATALOG || [];
+const BY = Object.fromEntries(CAT.map(p => [p.id, p]));
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- vocabulary ---------- */
+const GROUPS = [
+  {key:'style', label:'Style', multi:true, opts:['Modern Classical','Mediterranean','Quiet Minimal','Mid-Century','Organic Modern','Art Deco','Industrial','Coastal','Transitional','Japandi','Maximalist','Farmhouse']},
+  {key:'setting', label:'Setting', multi:false, opts:['Midwest','Coastal','Desert','Mountain','Urban Loft','Southern','Pacific Northwest']},
+  {key:'client', label:'Client', multi:true, opts:['Art Collector','Entertainers','Young Family','Quiet Luxury','Design-Forward','Empty Nesters']},
+  {key:'finish', label:'Finish', multi:false, opts:['Aged Brass','Bronze','Matte Black','Nickel & Chrome','White & Porcelain','Natural Fiber & Wood']},
+  {key:'mood', label:'Light', multi:false, opts:['Warm & Low','Soft & Diffused','Dramatic','Bright & Crisp']},
+  {key:'rooms', label:'Rooms', multi:true, opts:['Entry','Living','Dining','Kitchen','Primary Bedroom','Bath','Gallery Hall','Study','Exterior']},
+];
+const LEX = {
+  'modern classical':['classic','timeless','traditional','refined','elegan','candelabra','symmetr','tier','williamsburg','heritage','graceful'],
+  'mediterranean':['alabaster','travertine','plaster','gesso','terracotta','laterite','stone','spanish','wrought','iron','artisan','ceramic','marble','rattan','linen','villa','pompeii','carved','natural'],
+  'quiet minimal':['minimal','clean','simple','understated','pure','slim','quiet','subtle','geometry','architectural'],
+  'mid-century':['mid-century','retro','globe','atomic','sputnik','1950','1960','opal','dome'],
+  'organic modern':['organic','natural','stone','rattan','wood','linen','sculpt','soft','bamboo','woven','texture'],
+  'art deco':['deco','glamour','geometric','fluted','gold','crystal','opulent','glam','tiered','1920'],
+  'industrial':['industrial','cage','iron','metal','factory','exposed','raw','steel','edison','rivet'],
+  'coastal':['coastal','sea','rope','capiz','shell','rattan','linen','breezy','wicker','white'],
+  'transitional':['transitional','timeless','versatile','classic','clean','balanced'],
+  'japandi':['japanese','lantern','wood','bamboo','paper','calm','zen','natural','soji','quiet'],
+  'maximalist':['dramatic','bold','statement','opulent','decadent','crystal','luxur','cascade','jewel'],
+  'farmhouse':['farmhouse','rustic','barn','wood','countryside','lantern','nostalg','weathered'],
+  'art collector':['sculpt','artis','art','gallery','statement','handcraft','hand-formed','porcelain','monument','designer','artistry','crafted'],
+  'entertainers':['dining','gather','dramatic','statement','table','glamour'],
+  'young family':['durable','versatile','soft','simple','easy','timeless'],
+  'quiet luxury':['quiet','luxur','refined','understated','alabaster','porcelain','marble','subtle'],
+  'design-forward':['sculpt','modern','bold','geometric','innovative','designer','abstract'],
+  'empty nesters':['timeless','refined','warm','comfort','classic'],
+  'midwest':['warm','iron','bronze','stone','timeless','wood'],
+  'desert':['stone','travertine','terracotta','natural','plaster','laterite','earth'],
+  'mountain':['wood','iron','leather','rustic','stone','bronze'],
+  'urban loft':['industrial','linear','metal','architectural','black','minimal'],
+  'southern':['classic','lantern','brass','linen','traditional','gracious'],
+  'pacific northwest':['wood','natural','organic','glass','minimal'],
+  'warm & low':['warm','glow','soft','ambient','amber','2700'],
+  'soft & diffused':['diffus','opal','alabaster','frost','soft','linen','glow','satin','porcelain'],
+  'dramatic':['dramatic','statement','shadow','sculpt','bold','cascade'],
+  'bright & crisp':['clear','crystal','bright','glass','crisp'],
+  'art':['sculpt','artis','gallery','porcelain','handcraft'],
+};
+const FINISH_FAM = {
+  'aged brass':/brass|gold|gilt/i, 'bronze':/bronze|oil rubbed|antique/i, 'matte black':/black/i,
+  'nickel & chrome':/nickel|chrome|silver|satin nickel|polished/i, 'white & porcelain':/white|porcelain|plaster|bisque/i,
+  'natural fiber & wood':/wood|rattan|natural|bamboo|linen|walnut|oak/i
+};
+const ROOMS = {
+  'Entry':[{role:'Statement',layer:'Ambient',types:['chandelier','pendant'],qty:1},{role:'Wall pair',layer:'Accent',types:['sconce'],qty:2}],
+  'Living':[{role:'Ceiling',layer:'Ambient',types:['chandelier','flush'],qty:1},{role:'Art and wall',layer:'Accent',types:['sconce'],qty:4},{role:'Reading',layer:'Task',types:['table-lamp','floor-lamp'],qty:2}],
+  'Dining':[{role:'Over the table',layer:'Ambient',types:['chandelier','linear','pendant'],qty:1},{role:'Sideboard',layer:'Accent',types:['sconce'],qty:2}],
+  'Kitchen':[{role:'Island',layer:'Task',types:['linear','pendant'],qty:3},{role:'Perimeter',layer:'Ambient',types:['flush'],qty:4}],
+  'Primary Bedroom':[{role:'Ceiling',layer:'Ambient',types:['flush','chandelier'],qty:1},{role:'Bedside',layer:'Task',types:['sconce','pendant','table-lamp'],qty:2}],
+  'Bath':[{role:'Vanity',layer:'Task',types:['vanity','sconce'],qty:2,damp:true},{role:'Ceiling',layer:'Ambient',types:['flush'],qty:1,damp:true}],
+  'Gallery Hall':[{role:'Gallery wall',layer:'Accent',types:['sconce'],qty:3},{role:'Ceiling',layer:'Ambient',types:['flush'],qty:2}],
+  'Study':[{role:'Ceiling',layer:'Ambient',types:['pendant','flush'],qty:1},{role:'Desk',layer:'Task',types:['table-lamp'],qty:1},{role:'Shelving',layer:'Accent',types:['sconce'],qty:2}],
+  'Exterior':[{role:'Facade and doors',layer:'Accent',types:['outdoor'],qty:4,wet:true}],
+};
+const SWATCH = [
+  [/rosso|laterite|terracotta/i,'#9b4a32'],[/travertine/i,'#d8c7a9'],[/alabaster|wafer/i,'#ece4d4'],[/marble/i,'#e7e4df'],
+  [/porcelain|bisque|ombre|pulse/i,'#efece6'],[/plaster|gesso/i,'#eeeae1'],[/linen|off white/i,'#e6dfd1'],[/rattan|bamboo|natural|burlap|wicker/i,'#b8956a'],
+  [/wood|walnut/i,'#8a6a4a'],[/leather|tan/i,'#7a5236'],[/capiz|shell/i,'#efe7da'],[/arya|striae/i,'#cfc6b8'],
+  [/vintage brass|aged brass|natural aged brass/i,'#a8874f'],[/brass|gold|gilt/i,'#c4a05a'],[/dark bronze|oil rubbed|kentucky/i,'#3d3027'],[/bronze/i,'#5b4634'],
+  [/gunmetal/i,'#4a4e51'],[/black/i,'#1c1c1c'],[/nickel|silver/i,'#b8b8b2'],[/chrome/i,'#d3d6d8'],[/clear|crystal|glass/i,'#e3eaec'],[/white|opal|satin white/i,'#f4f3ef'],
+];
+const swatchFor = n => (SWATCH.find(([re]) => re.test(n)) || [0,'#cfcac2'])[1];
+window.SM_SWATCH = swatchFor;
+
+/* ---------- state ---------- */
+const sel = {style:new Set(), setting:new Set(), client:new Set(), finish:new Set(), mood:new Set(), rooms:new Set()};
+let mood = [], plan = null, pkg = null;
+
+/* ---------- chips ---------- */
+const opts = $('#opts');
+for (const g of GROUPS) {
+  const row = document.createElement('div'); row.className = 'group';
+  row.innerHTML = `<span class="label">${g.label}</span><div class="chips" role="group" aria-label="${g.label}"></div>`;
+  const box = row.querySelector('.chips');
+  g.opts.forEach((o, i) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = o;
+    b.id = `chip-${g.key}-${i}`; b.setAttribute('aria-pressed', 'false');
+    b.onclick = () => {
+      const s = sel[g.key];
+      if (s.has(o)) s.delete(o); else { if (!g.multi) s.clear(); s.add(o); }
+      syncChips();
+    };
+    box.appendChild(b);
+  });
+  opts.appendChild(row);
+}
+function syncChips(){
+  for (const g of GROUPS) g.opts.forEach((o,i) => document.getElementById(`chip-${g.key}-${i}`).setAttribute('aria-pressed', sel[g.key].has(o)));
+}
+
+/* ---------- uploads ---------- */
+function thumbs(el, files){ el.innerHTML=''; for (const f of files){ const i=new Image(); i.alt=''; i.src=URL.createObjectURL(f); el.appendChild(i);} }
+$('#mood').onchange = e => { mood = [...e.target.files].slice(0,4); thumbs($('#moodThumbs'), mood); };
+$('#plan').onchange = e => { plan = e.target.files[0] || null; thumbs($('#planThumbs'), plan ? [plan] : []); };
+
+/* ---------- local matching engine ---------- */
+const textOf = p => (p.name+' '+p.coll+' '+p.designer+' '+p.finish+' '+p.material+' '+p.desc).toLowerCase();
+const TXT = Object.fromEntries(CAT.map(p => [p.id, textOf(p)]));
+function concepts(brief){
+  const b = brief.toLowerCase(); const cs = new Set();
+  for (const k of Object.keys(LEX)) if (b.includes(k.split(' ')[0]) && (k.split(' ').length===1 || b.includes(k))) cs.add(k);
+  for (const k of ['style','setting','client','mood']) sel[k].forEach(v => cs.add(v.toLowerCase()));
+  if (/art|collect|gallery|paint/.test(b)) cs.add('art');
+  if (/wealth|luxur|high[- ]end|estate/.test(b)) cs.add('quiet luxury');
+  if (/classic/.test(b)) cs.add('modern classical');
+  return [...cs];
+}
+function finishPref(brief){
+  if (sel.finish.size) return [...sel.finish][0].toLowerCase();
+  const b = brief.toLowerCase();
+  for (const [k,re] of Object.entries(FINISH_FAM)) if (re.test(b)) return k;
+  return null;
+}
+function scoreAll(brief){
+  const cs = concepts(brief), fp = finishPref(brief), sc = {};
+  const words = brief.toLowerCase().match(/[a-z]{5,}/g) || [];
+  for (const p of CAT) {
+    const t = TXT[p.id]; let s = 0;
+    for (const c of cs) for (const w of (LEX[c]||[])) if (t.includes(w)) s += 1;
+    for (const w of words) if (t.includes(w)) s += .4;
+    if (fp && FINISH_FAM[fp].test(p.finish + ' ' + p.material)) s += 3;
+    if (cs.includes('art') && /Hering|Magon|Sanders|Saghian|Giraldo|Signature/.test(p.designer)) s += 2.5;
+    if (!p.desc) s -= 2;
+    sc[p.id] = s;
+  }
+  return {sc, cs, fp};
+}
+function pickFor(slot, sc, used, colls){
+  let best = null, bs = -1e9;
+  for (const p of CAT) {
+    if (!slot.types.includes(p.type) || used.has(p.id)) continue;
+    if (slot.wet && p.rating !== 'Wet') continue;
+    if (slot.damp && !/Damp|Wet/.test(p.rating)) continue;
+    let s = sc[p.id] + (colls.has(p.coll) ? 1.5 : 0) + slot.types.indexOf(p.type) * -.3;
+    if (s > bs) { bs = s; best = p; }
+  }
+  return best;
+}
+function alternatives(item, room){
+  const slot = (ROOMS[room] || []).find(s => s.role === item.role) || {types:[BY[item.id].type]};
+  const {sc} = scoreAll(currentBrief());
+  return CAT.filter(p => slot.types.includes(p.type) && (!slot.wet || p.rating==='Wet') && (!slot.damp || /Damp|Wet/.test(p.rating)))
+    .sort((a,b) => sc[b.id]-sc[a.id]).slice(0, 12).map(p => p.id);
+}
+function firstSentence(d){ const m = (d||'').match(/^.*?[.!?](\s|$)/); return m ? m[0].trim() : d; }
+function engineCompose(brief){
+  const {sc, cs, fp} = scoreAll(brief);
+  const rooms = sel.rooms.size ? [...sel.rooms] : ['Entry','Living','Dining','Kitchen','Primary Bedroom','Bath'];
+  const used = new Set(), colls = new Set(), out = [];
+  for (const r of rooms) {
+    const items = [];
+    for (const slot of ROOMS[r]) {
+      const p = pickFor(slot, sc, used, colls); if (!p) continue;
+      used.add(p.id); colls.add(p.coll);
+      const qty = slot.role==='Island' ? (p.type==='linear' || p.w > 24 ? 1 : p.w > 15 ? 2 : 3) : slot.qty;
+      const mat = [p.material, p.finish].filter(Boolean).join(' with ');
+      items.push({id:p.id, qty, role:slot.role, layer:slot.layer, why:`${mat ? mat + '. ' : ''}${firstSentence(p.desc)}`});
+    }
+    out.push({name:r, note:ROOM_NOTES[r], items});
+  }
+  const fins = topFinishes(out);
+  const label = [...sel.style].join(' / ') || (cs[0] ? cs[0].replace(/\b\w/g,c=>c.toUpperCase()) : 'A Considered House');
+  return {
+    title: label + (sel.setting.size ? ', ' + [...sel.setting][0] : ''),
+    brief, source:'engine',
+    thesis:`One finish family, ${fins[0] || 'a single metal'}, threads through every room so the house reads as one composition. Natural materials and diffused glass do the work of warmth, and each room is built in layers: an ambient source overhead, task light where hands are busy, and accent light on walls and objects.`,
+    principles:[
+      {h:'One metal, many materials', t:`Keep ${fins[0] || 'the metal'} constant and let glass, stone and fiber change from room to room.`},
+      {h:'Three layers per room', t:'Ambient overhead, task at the work surface, accent on walls and art. Each is dimmed on its own.'},
+      {h:'Families repeat', t:'Where a collection appears twice, it ties adjacent rooms together through the sightline.'}],
+    palette:{finishes:fins, materials:topMaterials(out), cct: sel.mood.has('Bright & Crisp') ? '3000K' : '2700K–3000K'},
+    rooms: out
+  };
+}
+const ROOM_NOTES = {
+  'Entry':'The first impression. One statement piece sets the language for the house, with a quieter pair on the walls.',
+  'Living':'Light the walls and the art first, then the ceiling. Lamps bring the light down to seated eye level in the evening.',
+  'Dining':'The table is the stage. The fixture is sized to roughly two-thirds the table length and hung 30–34" above it.',
+  'Kitchen':'Task light over the island, kept consistent with the dining room, with low-profile ambient light at the perimeter.',
+  'Primary Bedroom':'Soft, low and indirect. Bedside light is the most-used fixture in the house and should dim to a glow.',
+  'Bath':'Light at the face, not above it. Damp-rated pieces flank or top the mirror for even, shadow-free light.',
+  'Gallery Hall':'A corridor treated as a gallery. Sconces are spaced to the rhythm of the art, with discreet ceiling light between.',
+  'Study':'A focused desk light and warm shelving light. The ceiling fixture is secondary.',
+  'Exterior':'Wet-rated pieces that hold up to the weather and frame the doors and the facade at night.'
+};
+function topFinishes(rooms){ const c={}; rooms.flatMap(r=>r.items).forEach(i=>{const f=BY[i.id]?.finish; if(f) f.split('/').map(s=>s.trim()).forEach(s=>c[s]=(c[s]||0)+i.qty);}); return Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,3).map(e=>e[0]); }
+function topMaterials(rooms){ const c={}; rooms.flatMap(r=>r.items).forEach(i=>{const m=BY[i.id]?.material; if(m) c[m]=(c[m]||0)+1;}); return Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,4).map(e=>e[0]); }
+
+/* ---------- Claude composition ----------
+   Inside Claude: the viewer's own Claude account (sample capability).
+   On the website: POST /api/compose, where server.js builds the same prompt and calls the Claude API. */
+const inViewer = !!window.claude;
+let composer = null, canImages = false;
+(async () => {
+  try {
+    if (inViewer) {
+      const sampleFn = await window.claude.use('sample');
+      if (composer) {
+        const l = await sampleFn.limits().catch(() => null); canImages = !!l?.images;
+        composer = {kind:'viewer', run: (input, images) => sampleFn.json(window.SMPrompt.buildPrompt(input, BY), images.length ? {images} : {})};
+      }
+    } else {
+      const st = await fetch('api/status').then(r => r.ok ? r.json() : null).catch(() => null);
+      if (st?.ai) { canImages = !!st.images; composer = {kind:'server', run: serverCompose}; }
+    }
+  } catch { composer = null; }
+  $('#uploads').hidden = !canImages;
+})();
+async function shrink(file){
+  const bmp = await createImageBitmap(file);
+  const k = Math.min(1, 1568 / Math.max(bmp.width, bmp.height));
+  const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+  c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+  const url = c.toDataURL('image/jpeg', .85);
+  return {media_type:'image/jpeg', data:url.slice(url.indexOf(',') + 1)};
+}
+async function serverCompose(input, images){
+  const body = {input, images: await Promise.all(images.map(shrink))};
+  const r = await fetch('api/compose', {method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body)});
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw {code: j.code || (r.status === 429 ? 'rate_limited' : 'upstream_error')};
+  return j;
+}
+function shortlist(brief){
+  const {sc} = scoreAll(brief);
+  const rooms = sel.rooms.size ? [...sel.rooms] : Object.keys(ROOMS);
+  const types = new Set(rooms.flatMap(r => ROOMS[r].flatMap(s => s.types)));
+  const ids = new Set();
+  for (const t of types) CAT.filter(p => p.type===t).sort((a,b)=>sc[b.id]-sc[a.id]).slice(0, t==='outdoor'?10:18).forEach(p=>ids.add(p.id));
+  CAT.slice().sort((a,b)=>sc[b.id]-sc[a.id]).slice(0,50).forEach(p=>ids.add(p.id));
+  return [...ids].map(id => BY[id]);
+}
+async function claudeCompose(brief){
+  const images = canImages ? [...mood, ...(plan ? [plan] : [])] : [];
+  const input = {
+    brief,
+    chips: GROUPS.filter(g => g.key !== 'rooms').map(g => ({label:g.label, values:[...sel[g.key]]})),
+    rooms: [...sel.rooms],
+    ids: shortlist(brief).map(p => p.id),
+    moodCount: canImages ? mood.length : 0,
+    hasPlan: canImages && !!plan,
+  };
+  const data = await composer.run(input, images);
+  // validate
+  const rooms2 = (data.rooms||[]).map(r => ({name:String(r.name||'Room'), note:String(r.note||''), items:(r.items||[]).filter(i => BY[i.id]).map(i => ({id:i.id, qty:Math.max(1,Math.min(24,parseInt(i.qty)||1)), role:String(i.role||''), layer:/task|accent/i.test(i.layer)?(/task/i.test(i.layer)?'Task':'Accent'):'Ambient', why:String(i.why||'')}))})).filter(r => r.items.length);
+  if (!rooms2.length) throw {code:'empty_package'};
+  return {title:String(data.title||'Lighting Package'), brief, source:'claude', thesis:String(data.thesis||''), principles:(data.principles||[]).slice(0,3).map(p=>({h:String(p.h||''),t:String(p.t||'')})), palette:{finishes:(data.palette?.finishes||topFinishes(rooms2)).map(String).slice(0,4), materials:(data.palette?.materials||topMaterials(rooms2)).map(String).slice(0,5), cct:String(data.palette?.cct||'2700K–3000K')}, hero:BY[data.hero]?data.hero:null, rooms:rooms2};
+}
+
+/* ---------- render ---------- */
+function currentBrief(){ return $('#brief').value.trim(); }
+function plates(p){ const seen=[]; p.rooms.forEach(r=>r.items.forEach(i=>{ if(!seen.includes(i.id)) seen.push(i.id); })); return seen; }
+const pn = n => String(n).padStart(2,'0');
+const BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+const im = id => (window.SM_IMG && window.SM_IMG[id]) || (window.claude ? BLANK : `img/${id}.jpg`);
+window.__onPlates = () => document.querySelectorAll('img[data-id]').forEach(i => { i.src = im(i.dataset.id); });
+if (window.SM_IMG) setTimeout(window.__onPlates);
+function render(p){
+  pkg = p;
+  const order = plates(p), num = id => pn(order.indexOf(id)+1);
+  const hero = BY[p.hero] || BY[order[0]];
+  const date = new Date().toLocaleDateString('en-US',{day:'numeric',month:'long',year:'numeric'});
+  const pieces = p.rooms.reduce((a,r)=>a+r.items.reduce((b,i)=>b+i.qty,0),0);
+  const src = {claude:'Composed with Claude from the Studio M catalog', engine:"Composed with Studio M's matching engine", sample:'Example package'}[p.source];
+  const mats = [...(p.palette.finishes||[]).map(n=>({n,k:'Finish'})), ...(p.palette.materials||[]).map(n=>({n,k:'Material'}))];
+  const layers = ['Ambient','Task','Accent'];
+  $('#package').innerHTML = `
+  <div class="cover fade">
+    <div class="meta"><span class="label">Lighting Package</span><span class="label mute num">${esc(date)} · ${p.rooms.length} rooms · ${pieces} fixtures</span></div>
+    <h2>${esc(p.title)}</h2>
+    ${p.brief ? `<p class="quote">${esc(p.brief)}</p>` : ''}
+    <figure>
+      <div class="plate"><img data-id="${hero.id}" src="${im(hero.id)}" alt="${esc(hero.name)}, ${esc(hero.coll)}"></div>
+      <figcaption><span class="pn">Plate ${num(hero.id)}</span><span>${esc(hero.coll)}, ${esc(hero.name)} · ${esc(hero.designer)}</span></figcaption>
+    </figure>
+    <div style="grid-column:1/7" class="toolbar">
+      <button class="btn pdf-btn" hidden>Download PDF</button>
+      <span class="note pdf-note">${esc(src)}.</span>
+    </div>
+  </div>
+
+  <section class="section">
+    <span class="label">The idea</span>
+    <div class="body">
+      <p class="thesis">${esc(p.thesis)}</p>
+      <div class="principles">${(p.principles||[]).map(x=>`<div><h4>${esc(x.h)}</h4><p>${esc(x.t)}</p></div>`).join('')}</div>
+    </div>
+  </section>
+
+  <section class="section">
+    <span class="label">Palette</span>
+    <div class="body">
+      <div class="palette">${mats.map(m=>`<div class="sw"><span style="background:${swatchFor(m.n)}"></span><b>${esc(m.n)}</b><small>${m.k}</small></div>`).join('')}</div>
+      <div class="kelvin"><div><strong class="num">${esc(p.palette.cct)}</strong><span class="mute">Color temperature, throughout</span></div><div><strong class="num">90+</strong><span class="mute">CRI on integrated LED pieces</span></div><div><strong class="num">${order.length}</strong><span class="mute">Distinct pieces</span></div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <span class="label">The collection</span>
+    <div class="body sheet">${order.map(id=>{const x=BY[id];return `<a href="${x.url}" target="_blank" rel="noopener"><div class="plate"><img data-id="${x.id}" src="${im(x.id)}" alt="${esc(x.name)}" loading="lazy"></div><div class="t"><span class="pn">${num(id)}</span><span class="c">${esc(x.coll)}</span></div><span class="n">${esc(x.name)}</span><span class="c">${esc(x.designer)}</span></a>`}).join('')}</div>
+  </section>
+
+  ${p.rooms.map((r,ri)=>`
+  <section class="room">
+    <header><span class="label mute">Room ${ri+1} of ${p.rooms.length}</span><h3>${esc(r.name)}</h3><p>${esc(r.note)}</p></header>
+    <div class="items">${r.items.map((i,ii)=>{const x=BY[i.id];return `
+      <div class="item">
+        <div class="plate"><img data-id="${x.id}" src="${im(x.id)}" alt="${esc(x.name)}" loading="lazy"></div>
+        <div class="info">
+          <div class="top"><span class="pn">${num(i.id)}</span><span class="label">${esc(i.role)}</span><span class="layer">${esc(i.layer)}</span><span class="qty">× ${i.qty}</span></div>
+          <h5>${esc(x.coll)} <span class="mute">${esc(x.name)}</span></h5>
+          <p class="why">${esc(i.why)}</p>
+          <div class="spec num"><span>${esc(x.designer)}</span><span>${esc(x.finish)}${x.material?' / '+esc(x.material):''}</span><span>${esc(x.dims)}</span>${x.lumens?`<span>${esc(x.lumens)} lm</span>`:''}${x.rating?`<span>${esc(x.rating)} rated</span>`:''}<span>${esc(x.id)}</span></div>
+          <div class="acts"><button class="link" data-swap="${ri}:${ii}">Swap piece</button><a class="link" href="${x.url}" target="_blank" rel="noopener">View on Studio M</a></div>
+        </div>
+      </div>`}).join('')}</div>
+  </section>`).join('')}
+
+  <section class="section">
+    <span class="label">How it layers</span>
+    <div class="body scroll">
+      <table class="matrix"><thead><tr><th>Room</th>${layers.map(l=>`<th>${l}</th>`).join('')}</tr></thead>
+      <tbody>${p.rooms.map(r=>`<tr><td>${esc(r.name)}</td>${layers.map(l=>`<td>${r.items.filter(i=>i.layer===l).map(i=>`<div><span class="pn">${num(i.id)}</span>${esc(BY[i.id].coll)}</div>`).join('')||'<span class="mute">·</span>'}</td>`).join('')}</tr>`).join('')}</tbody></table>
+    </div>
+  </section>
+
+  <section class="section">
+    <span class="label">Schedule</span>
+    <div class="body scroll">
+      <table class="num"><thead><tr><th>Plate</th><th>Room</th><th>Qty</th><th>Model</th><th>Collection</th><th>Fixture</th><th>Finish</th><th>Dimensions</th><th>Lumens</th><th>Rating</th></tr></thead>
+      <tbody>${p.rooms.flatMap(r=>r.items.map(i=>{const x=BY[i.id];return `<tr><td class="pn">${num(i.id)}</td><td>${esc(r.name)}</td><td>${i.qty}</td><td>${esc(x.id)}</td><td>${esc(x.coll)}</td><td>${esc(x.name)}</td><td>${esc(x.finish)}</td><td>${esc(x.dims)}</td><td>${esc(x.lumens||'—')}</td><td>${esc(x.rating||'—')}</td></tr>`})).join('')}</tbody></table>
+    </div>
+  </section>
+
+  <footer class="colophon">
+    <span>Studio M · design.studiomlighting.com</span>
+    <span class="toolbar"><button class="btn ghost pdf-btn" hidden>Download PDF</button><span class="note pdf-note"></span></span>
+    <span>Selections are a starting point. Confirm sizing and lamping with your Studio M representative.</span>
+  </footer>`;
+  wireOutput();
+}
+let dl = null;
+const pdfAvailable = () => !inViewer || !!dl;
+(async () => { try { dl = await window.claude?.use?.('downloads'); } catch { dl = null; } document.querySelectorAll('.pdf-btn').forEach(b => b.hidden = !pdfAvailable()); })();
+function wireOutput(){
+  document.querySelectorAll('[data-swap]').forEach(b => b.onclick = () => {
+    const [ri, ii] = b.dataset.swap.split(':').map(Number);
+    const room = pkg.rooms[ri], item = room.items[ii];
+    const used = new Set(plates(pkg));
+    const alts = alternatives(item, room.name).filter(id => id === item.id || !used.has(id));
+    const next = alts[(alts.indexOf(item.id) + 1) % alts.length] || item.id;
+    const x = BY[next];
+    room.items[ii] = {...item, id:next, why:`${[x.material, x.finish].filter(Boolean).join(' with ')}. ${firstSentence(x.desc)}`};
+    const y = window.scrollY; render(pkg); window.scrollTo(0, y);
+  });
+  document.querySelectorAll('.pdf-btn').forEach(b => { b.hidden = !pdfAvailable(); b.onclick = downloadPdf; });
+}
+const loaded = {};
+function loadScript(src){ return loaded[src] || (loaded[src] = new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => { delete loaded[src]; rej(new Error('load ' + src)); }; document.head.appendChild(s); })); }
+let pdfBusy = false;
+async function downloadPdf(){
+  if (pdfBusy) return; pdfBusy = true;
+  const notes = document.querySelectorAll('.pdf-note'), say = t => notes.forEach(n => n.textContent = t);
+  document.querySelectorAll('.pdf-btn').forEach(b => b.disabled = true);
+  say('Preparing the PDF…');
+  try {
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+    await Promise.all([loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js'), loadScript('pdf-fonts.js'), loadScript('pdf.js')]);
+    if (!window.SM_IMG && !inViewer) await loadScript('plates.js');
+    if (!window.SM_IMG) await new Promise(r => { const t = setInterval(() => { if (window.SM_IMG) { clearInterval(t); r(); } }, 200); });
+    const src = {claude:'Composed with Claude from the Studio M collection.', engine:"Composed with Studio M's matching engine.", sample:'Example package.'}[pkg.source];
+    const doc = window.buildStudioMPdf(pkg, BY, window.SM_IMG, {sourceNote: src});
+    const filename = (pkg.title.replace(/[^\w]+/g,'-').replace(/^-|-$/g,'').toLowerCase() || 'lighting-package') + '-studio-m.pdf';
+    if (dl) await dl.save({filename, data: doc.output('blob')}); else doc.save(filename);
+    say('PDF ready.');
+  } catch (e) { say(e?.code === 'declined' ? '' : 'Could not create the PDF here.'); }
+  finally { pdfBusy = false; document.querySelectorAll('.pdf-btn').forEach(b => b.disabled = false); }
+}
+
+/* ---------- compose ---------- */
+let busy = false;
+$('#compose').onclick = async () => {
+  if (busy) return;
+  const brief = currentBrief();
+  if (!brief && ![...Object.values(sel)].some(s => s.size) && !mood.length && !plan) { $('#status').textContent = 'Add a few words or pick a style to begin.'; return; }
+  busy = true; const btn = $('#compose'); btn.disabled = true;
+  const st = $('#status');
+  if (composer) {
+    const t0 = Date.now(); const tick = setInterval(() => st.innerHTML = `<b>Composing</b> · reading ${shortlist(brief).length} pieces from the collection · ${Math.round((Date.now()-t0)/1000)}s`, 1000);
+    st.innerHTML = '<b>Composing</b> · reading the brief';
+    try { render(await claudeCompose(brief)); st.textContent = 'Composed. Scroll to the package.'; }
+    catch (e) {
+      render(engineCompose(brief));
+      st.textContent = e?.code === 'not_granted' ? "Claude wasn't allowed here, so the matching engine composed this package." : e?.code === 'rate_limited' ? 'Composing is busy right now, so the matching engine composed this package. Try Claude again in a few minutes.' : "Claude couldn't finish this one, so the matching engine composed it instead.";
+      if (e?.code === 'not_granted' || e?.code === 'sampling_disabled') composer = null;
+    }
+    finally { clearInterval(tick); }
+  } else {
+    render(engineCompose(brief)); st.textContent = 'Composed with the matching engine.';
+  }
+  busy = false; btn.disabled = false;
+  $('#package').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+};
+
+/* ---------- example package (opening state) ---------- */
+const SAMPLE = {
+  source:'sample',
+  title:'Stone, Porcelain and Warm Brass',
+  brief:'A modern classical Mediterranean home in the Midwest, for a client who collects art.',
+  thesis:'Mediterranean materials, tempered for a Midwestern winter. Spanish alabaster, travertine and Hering Berlin porcelain give every room a lit-from-within glow, held in Natural Aged Brass and Dark Bronze. Sculptural pieces by Stefanie Hering and Nina Magon are treated like part of the art collection, and quieter fixtures light the walls where the paintings hang.',
+  principles:[
+    {h:'Stone that glows', t:'Alabaster and travertine soften the light at the source, so even a small sconce reads as warm and calm on a February evening.'},
+    {h:'Designer pieces as art', t:'Tropo, Megalith and Burgeon are placed where they are seen from a distance, and then given room to breathe.'},
+    {h:'Brass up front, bronze behind', t:'Natural Aged Brass on the pieces you look at; Dark Bronze on the pieces that light the walls and recede.'}],
+  palette:{finishes:['Natural Aged Brass','Dark Bronze','Blackened Brass'], materials:['Spanish Alabaster','Travertine','Porcelain','Rosso Laterite'], cct:'2700K–3000K'},
+  hero:'SM300307OMBBBR',
+  rooms:[
+    {name:'Entry', note:'A double-height entry gets one vertical sculpture in stone. A pair of alabaster sconces sets the material language for the rest of the house.', items:[
+      {id:'SM24827ARYBBZ', qty:1, role:'Statement', layer:'Ambient', why:"Nina Magon's Megalith stacks Striae Arya stone on a brushed bronze stem. At 42\" tall it fills a vertical void the way a sculpture would."},
+      {id:'SM168231WADBZ', qty:2, role:'Wall pair', layer:'Accent', why:'Plinth is a small slab of alabaster in Dark Bronze. Flanking the door, it gives a soft, even glow that reads as stone rather than glass.'}]},
+    {name:'Living', note:'The art comes first. Alabaster sconces wash the walls between the paintings, a plaster-white gesso fixture adds ambient light, and two alabaster lamps bring the light down to seated height.', items:[
+      {id:'SM262450WTNAB', qty:1, role:'Ceiling', layer:'Ambient', why:"Artemis's inverted cone in textured Plaster White gesso feels Mediterranean and classical at once. It keeps the ceiling quiet so the walls hold the attention."},
+      {id:'SM168201WANAB', qty:4, role:'Art and wall', layer:'Accent', why:'Quarry frames Spanish alabaster in Natural Aged Brass. Mounted between canvases, the sconces light the wall without glare on varnished surfaces.'},
+      {id:'SM2421WABBZ', qty:2, role:'Reading', layer:'Task', why:"Nina Magon's New Age desk lamp repeats the alabaster in a portable form, scaled for a side table at 20\" tall."}]},
+    {name:'Dining', note:"The house's signature moment. Stefanie Hering's porcelain over the table, with matching porcelain sconces on the sideboard wall.", items:[
+      {id:'SM300307OMBBBR', qty:1, role:'Over the table', layer:'Ambient', why:"Tropo was designed for the dining table. Seven Ombre porcelain shades glow softly, and a separately switched downlight highlights the plates. At 66\" long it suits a table for eight to ten."},
+      {id:'SM300300PLSVB', qty:2, role:'Sideboard', layer:'Accent', why:'The Tropo sconce in Pulse porcelain carries the hand-applied relief of the chandelier onto the wall at a smaller scale.'}]},
+    {name:'Kitchen', note:'One linear stone pendant over the island, in a terracotta-red stone that brings the Mediterranean palette into the working room. Small alabaster flush mounts at the perimeter keep the ceiling clean.', items:[
+      {id:'SM256266RLGM', qty:1, role:'Island', layer:'Task', why:'Lintel sets two slabs of Rosso Laterite stone in a 47" linear form. It lights the counter evenly and reads like a piece of architecture.'},
+      {id:'SM168210WADBZ', qty:6, role:'Perimeter', layer:'Ambient', why:'Slab is a 5.5" square of alabaster in Dark Bronze. It reads as material rather than as a can light, and it is damp-rated near the range.'}]},
+    {name:'Primary Bedroom', note:'Marble glass overhead, and porcelain buds hung low on either side of the bed in place of lamps.', items:[
+      {id:'SM24875MRNAB', qty:1, role:'Ceiling', layer:'Ambient', why:"Nina Magon's Locket uses milky cloud marble glass backlit for even, diffused light: calm overhead light that never glares when you're lying down."},
+      {id:'SM30141WTBKMNAB', qty:2, role:'Bedside', layer:'Task', why:"Stefanie Hering's Burgeon is a softly bloomed porcelain shade on black marble and brass. Hung low, it frees the nightstand and becomes a small object in its own right."}]},
+    {name:'Primary Bath', note:'Ribbed ceramic at the mirror and carved travertine overhead. Every piece is damp-rated.', items:[
+      {id:'SM261493WTOI', qty:2, role:'Vanity', layer:'Task', why:'Bisque pairs ribbed ceramic shades with classic arching arms. It is timeless and gently Mediterranean, and it lights the face evenly over each sink.'},
+      {id:'SM255221TV', qty:2, role:'Ceiling', layer:'Ambient', why:'Cava is a cup carved from travertine. It repeats the stone of the floor and vanity tops in the light itself.'}]},
+    {name:'Exterior', note:'Wet-rated stone sconces that stand up to a Midwestern winter and match the stone used inside.', items:[
+      {id:'SM154351RLGM', qty:4, role:'Facade and doors', layer:'Accent', why:'Discus sets a circular slab of Rosso Laterite stone on the wall. It matches the kitchen island fixture, so the house reads as one composition from the street.'}]}
+  ]
+};
+$('#brief').value = SAMPLE.brief;
+['Modern Classical','Mediterranean'].forEach(v => sel.style.add(v)); sel.setting.add('Midwest'); sel.client.add('Art Collector'); sel.mood.add('Warm & Low');
+['Entry','Living','Dining','Kitchen','Primary Bedroom','Bath','Exterior'].forEach(r => sel.rooms.add(r));
+syncChips();
+render(SAMPLE);
+})();
+</script>

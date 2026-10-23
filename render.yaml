@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: studiomdesigner
+    runtime: node
+    plan: starter
+    buildCommand: npm ci --omit=dev
+    startCommand: node server.js
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: NODE_VERSION
+        value: "22"
+      - key: DAILY_LIMIT
+        value: "300"
+      - key: PER_IP_LIMIT
+        value: "8"

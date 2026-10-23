@@ -1,0 +1,16 @@
+{
+  "name": "studiomdesigner",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Studio M Design: lighting packages composed from the Studio M collection",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.1.0"
+  }
+}
