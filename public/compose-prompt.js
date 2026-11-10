@@ -23,6 +23,7 @@
       favorites: (Array.isArray(input.favorites) ? input.favorites : []).slice(0, 8).map(f => cleanFavorite(f, byId)).filter(Boolean),
       brief: clip(input.brief, 2000),
       settingNote: clip(input.settingNote, 300),
+      styleNote: clip(input.styleNote, 1400),
       chips: (Array.isArray(input.chips) ? input.chips : []).slice(0, 8).map(c => ({
         label: clip(c && c.label, 30),
         values: (Array.isArray(c && c.values) ? c.values : []).slice(0, 12).map(v => clip(v, 40)),
@@ -56,7 +57,7 @@ ${input.favorites.map(p => line(p, 600)).join('\n')}
 
 PROJECT BRIEF
 ${input.brief || '(no text brief)'}
-${chips}${input.settingNote ? `\nSetting character: ${input.settingNote} Let the regional vernacular, climate and light shape the choices (for example salt air on the coast, long winters inland, strong sun in the desert).` : ''}
+${chips}${input.styleNote ? `\nStyle character: ${input.styleNote} Use these references to judge the spirit of the selection; recommend only Studio M pieces and do not name other brands in the package.` : ''}${input.settingNote ? `\nSetting character: ${input.settingNote} Let the regional vernacular, climate and light shape the choices (for example salt air on the coast, long winters inland, strong sun in the desert).` : ''}
 Rooms: ${rooms}${imgNote}${favs}
 
 HOW TO COMPOSE

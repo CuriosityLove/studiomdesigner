@@ -241,13 +241,50 @@ const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;
 
 /* ---------- vocabulary ---------- */
 const GROUPS = [
-  {key:'style', label:'Style', multi:true, opts:['Modern Classical','Mediterranean','Quiet Minimal','Mid-Century','Organic Modern','Art Deco','Industrial','Coastal','Transitional','Japandi','Maximalist','Farmhouse']},
+  {key:'style', label:'Style', multi:true, opts:null},
   {key:'setting', label:'Setting', multi:false, opts:null},
   {key:'client', label:'Client', multi:true, opts:['Art Collector','Entertainers','Young Family','Quiet Luxury','Design-Forward','Empty Nesters']},
   {key:'finish', label:'Finish', multi:false, opts:['Aged Brass','Bronze','Matte Black','Nickel & Chrome','White & Porcelain','Natural Fiber & Wood']},
   {key:'mood', label:'Light', multi:false, opts:['Warm & Low','Soft & Diffused','Dramatic','Bright & Crisp']},
   {key:'rooms', label:'Rooms', multi:true, opts:['Entry','Living','Dining','Kitchen','Primary Bedroom','Bath','Gallery Hall','Study','Exterior']},
 ];
+/* Styles: the design worlds Studio M speaks to. `desc` shows on the chip; `kw` is matched against
+   Studio M's own product descriptions; `note` tells Claude which houses and designers the style
+   evokes. Brand and designer names stay out of the chips and live only in the notes. */
+const STYLES = {
+  'Quiet Minimal':           {desc:'Pared back · stone · natural light',
+    kw:['minimal','clean','simple','understated','pure','slim','quiet','subtle','architectural','alabaster','stone','plaster','diffus','recess'],
+    note:'Monastic, architectural minimalism in the spirit of John Pawson and Vincent Van Duysen: few objects, honest materials (stone, plaster, oak), light that disappears into the architecture; fixtures should be nearly silent, never decorative for its own sake.'},
+  'Italian Modern':          {desc:'Tailored · rich materials · effortless luxury',
+    kw:['refined','luxur','linear','sculpt','marble','bronze','brass','glass','modern','elegan','designer','understated','smoked','leather'],
+    note:'Contemporary Italian living in the spirit of Molteni&C, B&B Italia and Minotti: tailored, low and architectural, rich but restrained materials (bronze, smoked glass, marble, leather, walnut), soft geometry, effortless luxury.'},
+  'Modernist Icons':         {desc:'Mid-century masters · bold, honest forms',
+    kw:['mid-century','globe','dome','opal','geometric','iconic','modern','retro','sculpt','1950','1960','brass','black'],
+    note:'The modernist canon in the spirit of Cassina\'s masters collection (Le Corbusier, Charlotte Perriand, Gio Ponti) and the great mid-century designers: graphic, honest forms, primary geometry, collector-grade classics.'},
+  'Sculptural Contemporary': {desc:'Statement forms · collectible · art-forward',
+    kw:['sculpt','statement','artis','art','dramatic','cascade','handcraft','porcelain','monument','designer','organic','bold','cluster','abstract'],
+    note:'Collectible, gallery-minded contemporary design: lighting treated as sculpture, one or two monumental statement pieces per space, hand-made and designer-authored work, quieter pieces around them.'},
+  'Warm Organic':            {desc:'Wood · plaster · linen · soft and natural',
+    kw:['organic','natural','stone','rattan','wood','linen','soft','bamboo','woven','texture','plaster','travertine','paper'],
+    note:'Warm organic modern: natural textures (oak, plaster, linen, rattan, travertine), soft rounded forms, diffused low light, calm and tactile.'},
+  'Japandi':                 {desc:'Japanese calm · Scandinavian warmth',
+    kw:['japanese','paper','wood','bamboo','calm','quiet','natural','soji','minimal','soft','pleat','rice'],
+    note:'Japandi: Japanese restraint meets Scandinavian warmth, paper and pleated lanterns, light timber, low soft light, nothing superfluous.'},
+  'Modern Classical':        {desc:'Classic proportion · modern restraint',
+    kw:['classic','timeless','traditional','refined','elegan','candelabra','symmetr','tier','williamsburg','heritage','graceful','crystal'],
+    note:'Modern classical: classical proportion and symmetry, candelabra and lantern forms, aged brass and crystal, edited and calm rather than ornate.'},
+  'Mediterranean':           {desc:'Plaster · stone · terracotta · sun',
+    kw:['alabaster','travertine','plaster','gesso','terracotta','laterite','stone','spanish','wrought','iron','artisan','ceramic','marble','carved','villa','natural'],
+    note:'Mediterranean: lime plaster, carved stone, alabaster and terracotta, forged iron, sun-washed and artisanal.'},
+  'Art Deco Glamour':        {desc:'Geometry · brass · crystal',
+    kw:['deco','glamour','geometric','fluted','gold','crystal','opulent','glam','tiered','1920','brass','beveled'],
+    note:'Art Deco glamour: stepped and fluted geometry, polished brass and gold leaf, crystal and glass, nightlife polish.'},
+  'Layered Maximalist':      {desc:'Collected · colorful · more is more',
+    kw:['dramatic','bold','statement','opulent','decadent','crystal','luxur','cascade','jewel','color','pattern','iridescent'],
+    note:'Layered maximalism in the spirit of Kelly Wearstler: confident color and pattern, mixed metals and eras, several statement pieces in conversation, collected rather than matched.'},
+};
+GROUPS.find(g => g.key === 'style').opts = Object.keys(STYLES);
+
 /* Named settings: each place carries its architectural vernacular (words matched against
    Studio M's own descriptions) and a one-line character note that Claude reads. */
 const SETTINGS = {
@@ -278,18 +315,8 @@ const SETTINGS = {
 };
 GROUPS.find(g => g.key === 'setting').opts = Object.keys(SETTINGS);
 const LEX = {
-  'modern classical':['classic','timeless','traditional','refined','elegan','candelabra','symmetr','tier','williamsburg','heritage','graceful'],
-  'mediterranean':['alabaster','travertine','plaster','gesso','terracotta','laterite','stone','spanish','wrought','iron','artisan','ceramic','marble','rattan','linen','villa','pompeii','carved','natural'],
-  'quiet minimal':['minimal','clean','simple','understated','pure','slim','quiet','subtle','geometry','architectural'],
-  'mid-century':['mid-century','retro','globe','atomic','sputnik','1950','1960','opal','dome'],
-  'organic modern':['organic','natural','stone','rattan','wood','linen','sculpt','soft','bamboo','woven','texture'],
-  'art deco':['deco','glamour','geometric','fluted','gold','crystal','opulent','glam','tiered','1920'],
   'industrial':['industrial','cage','iron','metal','factory','exposed','raw','steel','edison','rivet'],
   'coastal':['coastal','sea','rope','capiz','shell','rattan','linen','breezy','wicker','white'],
-  'transitional':['transitional','timeless','versatile','classic','clean','balanced'],
-  'japandi':['japanese','lantern','wood','bamboo','paper','calm','zen','natural','soji','quiet'],
-  'maximalist':['dramatic','bold','statement','opulent','decadent','crystal','luxur','cascade','jewel'],
-  'farmhouse':['farmhouse','rustic','barn','wood','countryside','lantern','nostalg','weathered'],
   'art collector':['sculpt','artis','art','gallery','statement','handcraft','hand-formed','porcelain','monument','designer','artistry','crafted'],
   'entertainers':['dining','gather','dramatic','statement','table','glamour'],
   'young family':['durable','versatile','soft','simple','easy','timeless'],
@@ -311,6 +338,26 @@ const LEX = {
   'art':['sculpt','artis','gallery','porcelain','handcraft'],
 };
 for (const [name, v] of Object.entries(SETTINGS)) LEX[name.toLowerCase()] = v.kw;
+for (const [name, v] of Object.entries(STYLES)) LEX[name.toLowerCase()] = v.kw;
+// Words people type in the brief, mapped to a style's vocabulary (and its note for Claude).
+const STYLE_ALIASES = {
+  'Quiet Minimal':['minimal','minimalist','pawson','van duysen','monastic','zen','pared'],
+  'Italian Modern':['italian','molteni','b&b','minotti','poliform','milan','tailored'],
+  'Modernist Icons':['cassina','corbusier','perriand','ponti','mid-century','midcentury','modernist','bauhaus','eames'],
+  'Sculptural Contemporary':['sculptural','collectible','gallery','statement','contemporary art'],
+  'Warm Organic':['organic','natural','earthy','wabi'],
+  'Japandi':['japandi','japanese','scandinavian','nordic'],
+  'Modern Classical':['classical','classic','traditional','timeless'],
+  'Mediterranean':['mediterranean','tuscan','provence','greek','villa'],
+  'Art Deco Glamour':['deco','glamour','glam','gatsby'],
+  'Layered Maximalist':['maximalist','wearstler','eclectic','colorful','bold color'],
+};
+Object.entries(STYLE_ALIASES).forEach(([style, words]) => words.forEach(w => { if (!LEX[w]) LEX[w] = STYLES[style].kw; }));
+function stylesFor(brief){
+  const b = brief.toLowerCase(), out = new Set(sel.style);
+  for (const [style, words] of Object.entries(STYLE_ALIASES)) if (words.some(w => new RegExp('(^|[^a-z])' + w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^a-z]|$)').test(b))) out.add(style);
+  return [...out];
+}
 const FINISH_FAM = {
   'aged brass':/brass|gold|gilt/i, 'bronze':/bronze|oil rubbed|antique/i, 'matte black':/black/i,
   'nickel & chrome':/nickel|chrome|silver|satin nickel|polished/i, 'white & porcelain':/white|porcelain|plaster|bisque/i,
@@ -349,7 +396,8 @@ for (const g of GROUPS) {
   const box = row.querySelector('.chips');
   g.opts.forEach((o, i) => {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = o;
-    if (g.key === 'setting' && SETTINGS[o]) { b.classList.add('chip-place'); const sm = document.createElement('small'); sm.textContent = SETTINGS[o].places; b.appendChild(sm); }
+    const sub = g.key === 'setting' ? SETTINGS[o]?.places : g.key === 'style' ? STYLES[o]?.desc : null;
+    if (sub) { b.classList.add('chip-place'); const sm = document.createElement('small'); sm.textContent = sub; b.appendChild(sm); }
     b.id = `chip-${g.key}-${i}`; b.setAttribute('aria-pressed', 'false');
     b.onclick = () => {
       const s = sel[g.key];
@@ -439,9 +487,10 @@ const textOf = p => (p.name+' '+p.coll+' '+p.designer+' '+p.finish+' '+p.materia
 const TXT = Object.fromEntries(CAT.map(p => [p.id, textOf(p)]));
 function concepts(brief){
   const b = brief.toLowerCase(); const cs = new Set();
-  for (const k of Object.keys(LEX)) if (b.includes(k.split(' ')[0]) && (k.split(' ').length===1 || b.includes(k))) cs.add(k);
+  const word = k => new RegExp('(^|[^a-z])' + k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^a-z]|$)').test(b);
+  for (const k of Object.keys(LEX)) if (word(k)) cs.add(k);
   for (const k of ['style','setting','client','mood']) sel[k].forEach(v => cs.add(v.toLowerCase()));
-  if (/art|collect|gallery|paint/.test(b)) cs.add('art');
+  if (/\bart\b|artwork|collect|gallery|paint/.test(b)) cs.add('art');
   if (/wealth|luxur|high[- ]end|estate/.test(b)) cs.add('quiet luxury');
   if (/classic/.test(b)) cs.add('modern classical');
   return [...cs];
@@ -621,6 +670,7 @@ async function claudeCompose(brief){
     ids: [...new Set([...favorites, ...shortlist(brief).map(p => p.id)])],
     favorites: favorites.map(id => BY[id].remote ? {...BY[id]} : id),
     settingNote: sel.setting.size ? SETTINGS[[...sel.setting][0]]?.note || '' : '',
+    styleNote: stylesFor(brief).map(st => STYLES[st]?.note).filter(Boolean).join(' '),
     moodCount: canImages ? mood.length : 0,
     hasPlan: canImages && !!plan,
   };
