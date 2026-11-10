@@ -239,12 +239,33 @@ const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;
 /* ---------- vocabulary ---------- */
 const GROUPS = [
   {key:'style', label:'Style', multi:true, opts:['Modern Classical','Mediterranean','Quiet Minimal','Mid-Century','Organic Modern','Art Deco','Industrial','Coastal','Transitional','Japandi','Maximalist','Farmhouse']},
-  {key:'setting', label:'Setting', multi:false, opts:['Midwest','Coastal','Desert','Mountain','Urban Loft','Southern','Pacific Northwest']},
+  {key:'setting', label:'Setting', multi:false, opts:null},
   {key:'client', label:'Client', multi:true, opts:['Art Collector','Entertainers','Young Family','Quiet Luxury','Design-Forward','Empty Nesters']},
   {key:'finish', label:'Finish', multi:false, opts:['Aged Brass','Bronze','Matte Black','Nickel & Chrome','White & Porcelain','Natural Fiber & Wood']},
   {key:'mood', label:'Light', multi:false, opts:['Warm & Low','Soft & Diffused','Dramatic','Bright & Crisp']},
   {key:'rooms', label:'Rooms', multi:true, opts:['Entry','Living','Dining','Kitchen','Primary Bedroom','Bath','Gallery Hall','Study','Exterior']},
 ];
+/* Named settings: each place carries its architectural vernacular (words matched against
+   Studio M's own descriptions) and a one-line character note that Claude reads. */
+const SETTINGS = {
+  'Hamptons Shingle Style':      {kw:['coastal','linen','rope','white','rattan','lantern','weathered','classic','capiz','natural','brass'], note:'Cedar-shingle summer house on the East End: airy white rooms, linen, rope and rattan, weathered brass, porch lanterns, nothing flashy.'},
+  'Nantucket Cottage':           {kw:['coastal','lantern','white','linen','classic','traditional','nautical','rope','glass','nickel'], note:'Island cottage: low ceilings, painted wood, nautical lanterns, clear glass and polished nickel, built to weather salt air.'},
+  'Boston Brownstone':           {kw:['classic','traditional','heritage','williamsburg','brass','crystal','iron','timeless','refined','graceful','candelabra'], note:'Back Bay or Beacon Hill townhouse: tall parlor ceilings, plaster moldings, period proportion, aged brass and crystal used with restraint.'},
+  'Manhattan Penthouse':         {kw:['glamour','crystal','sculpt','statement','gold','luxur','marble','linear','dramatic','opulent','designer'], note:'Upper-floor penthouse with city views: gallery walls, sculptural statement pieces, marble and brass, dramatic but tailored.'},
+  'Brooklyn Loft':               {kw:['industrial','iron','black','exposed','metal','cage','raw','steel','edison','rivet','linear'], note:'Converted warehouse: brick, timber beams and steel windows, honest materials, blackened metal and exposed lamping.'},
+  'Miami Beach Modern':          {kw:['deco','white','glass','opal','gold','geometric','fluted','glamour','globe','brass','bright'], note:'South Beach and Bay Harbor: Art Deco geometry meets bright modern white, terrazzo, fluted glass, gold accents; exteriors face salt air and storms.'},
+  'Palm Beach Classic':          {kw:['capiz','rattan','brass','white','linen','classic','shell','coastal','glamour','lantern','gold'], note:'Palm Beach resort glamour: lacquer, capiz and rattan, gilded brass, garden-party color, polished but relaxed.'},
+  'Los Angeles Hillside Modern': {kw:['minimal','architectural','linear','glass','sculpt','clean','black','slim','modern','geometry','indoor'], note:'Hollywood Hills glass house: floor-to-ceiling windows, long sightlines, minimal architectural fixtures, a few sculptural pieces against the view.'},
+  'Malibu Beach House':          {kw:['natural','rattan','linen','rope','wood','organic','white','travertine','woven','soft','texture'], note:'On the sand in Malibu: bleached oak, travertine, woven and organic textures, soft diffused light, indoor-outdoor living.'},
+  'Palm Springs Desert Modern':  {kw:['mid-century','globe','brass','opal','atomic','geometric','dome','retro','terracotta','1960'], note:'Mid-century desert modern: breeze block, clerestory windows, globes and domes, warm brass, a little playful.'},
+  'Santa Barbara Spanish Colonial': {kw:['wrought','iron','plaster','terracotta','lantern','artisan','bronze','alabaster','carved','stone','spanish'], note:'Spanish Colonial Revival: white plaster, terracotta tile, hand-forged iron lanterns, alabaster and carved stone.'},
+  'Charleston Townhouse':        {kw:['classic','lantern','brass','linen','traditional','gracious','heritage','candelabra','gas','williamsburg'], note:'Historic Charleston single house: piazzas, gas-lantern tradition, heart pine, gracious Southern classicism.'},
+  'Midwest Estate':              {kw:['warm','iron','bronze','stone','timeless','wood','classic','alabaster','layered'], note:'Midwestern estate: long winters, so warm, layered, glare-free light; stone, wood and bronze; timeless rather than trend-led.'},
+  'Aspen Mountain Lodge':        {kw:['wood','iron','leather','rustic','stone','bronze','natural','warm','lantern','organic'], note:'Ski-country lodge: timber and stone, leather and blackened iron, warm low light after a day outside.'},
+  'Scottsdale Desert Contemporary': {kw:['stone','travertine','terracotta','plaster','laterite','earth','natural','sculpt','organic','minimal'], note:'Sonoran desert contemporary: rammed earth and plaster, travertine, earthy terracotta tones, strong sun and long evening shadows.'},
+  'Pacific Northwest Modern':    {kw:['wood','natural','organic','glass','minimal','soft','warm','quiet','japanese','paper'], note:'Pacific Northwest modern: cedar and glass among the trees, grey light, soft warm interiors, quiet Japanese-influenced restraint.'},
+};
+GROUPS.find(g => g.key === 'setting').opts = Object.keys(SETTINGS);
 const LEX = {
   'modern classical':['classic','timeless','traditional','refined','elegan','candelabra','symmetr','tier','williamsburg','heritage','graceful'],
   'mediterranean':['alabaster','travertine','plaster','gesso','terracotta','laterite','stone','spanish','wrought','iron','artisan','ceramic','marble','rattan','linen','villa','pompeii','carved','natural'],
@@ -265,6 +286,17 @@ const LEX = {
   'design-forward':['sculpt','modern','bold','geometric','innovative','designer','abstract'],
   'empty nesters':['timeless','refined','warm','comfort','classic'],
   'midwest':['warm','iron','bronze','stone','timeless','wood'],
+  'hamptons':SETTINGS['Hamptons Shingle Style'].kw, 'nantucket':SETTINGS['Nantucket Cottage'].kw, 'martha':SETTINGS['Nantucket Cottage'].kw,
+  'boston':SETTINGS['Boston Brownstone'].kw, 'brownstone':SETTINGS['Boston Brownstone'].kw, 'beacon hill':SETTINGS['Boston Brownstone'].kw,
+  'manhattan':SETTINGS['Manhattan Penthouse'].kw, 'penthouse':SETTINGS['Manhattan Penthouse'].kw, 'new york':SETTINGS['Manhattan Penthouse'].kw,
+  'brooklyn':SETTINGS['Brooklyn Loft'].kw, 'loft':SETTINGS['Brooklyn Loft'].kw, 'tribeca':SETTINGS['Brooklyn Loft'].kw,
+  'miami':SETTINGS['Miami Beach Modern'].kw, 'south beach':SETTINGS['Miami Beach Modern'].kw, 'palm beach':SETTINGS['Palm Beach Classic'].kw,
+  'los angeles':SETTINGS['Los Angeles Hillside Modern'].kw, 'hollywood':SETTINGS['Los Angeles Hillside Modern'].kw, 'beverly hills':SETTINGS['Los Angeles Hillside Modern'].kw, 'bel air':SETTINGS['Los Angeles Hillside Modern'].kw,
+  'malibu':SETTINGS['Malibu Beach House'].kw, 'palm springs':SETTINGS['Palm Springs Desert Modern'].kw,
+  'santa barbara':SETTINGS['Santa Barbara Spanish Colonial'].kw, 'montecito':SETTINGS['Santa Barbara Spanish Colonial'].kw,
+  'charleston':SETTINGS['Charleston Townhouse'].kw, 'savannah':SETTINGS['Charleston Townhouse'].kw,
+  'aspen':SETTINGS['Aspen Mountain Lodge'].kw, 'vail':SETTINGS['Aspen Mountain Lodge'].kw, 'jackson hole':SETTINGS['Aspen Mountain Lodge'].kw,
+  'scottsdale':SETTINGS['Scottsdale Desert Contemporary'].kw, 'seattle':SETTINGS['Pacific Northwest Modern'].kw, 'portland':SETTINGS['Pacific Northwest Modern'].kw,
   'desert':['stone','travertine','terracotta','natural','plaster','laterite','earth'],
   'mountain':['wood','iron','leather','rustic','stone','bronze'],
   'urban loft':['industrial','linear','metal','architectural','black','minimal'],
@@ -276,17 +308,18 @@ const LEX = {
   'bright & crisp':['clear','crystal','bright','glass','crisp'],
   'art':['sculpt','artis','gallery','porcelain','handcraft'],
 };
+for (const [name, v] of Object.entries(SETTINGS)) LEX[name.toLowerCase()] = v.kw;
 const FINISH_FAM = {
   'aged brass':/brass|gold|gilt/i, 'bronze':/bronze|oil rubbed|antique/i, 'matte black':/black/i,
   'nickel & chrome':/nickel|chrome|silver|satin nickel|polished/i, 'white & porcelain':/white|porcelain|plaster|bisque/i,
   'natural fiber & wood':/wood|rattan|natural|bamboo|linen|walnut|oak/i
 };
 const ROOMS = {
-  'Entry':[{role:'Statement',layer:'Ambient',types:['chandelier','pendant'],qty:1},{role:'Wall pair',layer:'Accent',types:['sconce'],qty:2}],
-  'Living':[{role:'Ceiling',layer:'Ambient',types:['chandelier','flush'],qty:1},{role:'Art and wall',layer:'Accent',types:['sconce'],qty:4},{role:'Reading',layer:'Task',types:['table-lamp','floor-lamp'],qty:2}],
-  'Dining':[{role:'Over the table',layer:'Ambient',types:['chandelier','linear','pendant'],qty:1},{role:'Sideboard',layer:'Accent',types:['sconce'],qty:2}],
+  'Entry':[{role:'Statement',layer:'Ambient',types:['chandelier','pendant'],qty:1,minW:12},{role:'Wall pair',layer:'Accent',types:['sconce'],qty:2}],
+  'Living':[{role:'Ceiling',layer:'Ambient',types:['chandelier','flush'],qty:1,minW:14},{role:'Art and wall',layer:'Accent',types:['sconce'],qty:4},{role:'Reading',layer:'Task',types:['table-lamp','floor-lamp'],qty:2}],
+  'Dining':[{role:'Over the table',layer:'Ambient',types:['chandelier','linear','pendant'],qty:1,minW:18},{role:'Sideboard',layer:'Accent',types:['sconce'],qty:2}],
   'Kitchen':[{role:'Island',layer:'Task',types:['linear','pendant'],qty:3},{role:'Perimeter',layer:'Ambient',types:['flush'],qty:4}],
-  'Primary Bedroom':[{role:'Ceiling',layer:'Ambient',types:['flush','chandelier'],qty:1},{role:'Bedside',layer:'Task',types:['sconce','pendant','table-lamp'],qty:2,maxW:16}],
+  'Primary Bedroom':[{role:'Ceiling',layer:'Ambient',types:['flush','chandelier'],qty:1,minW:12},{role:'Bedside',layer:'Task',types:['sconce','pendant','table-lamp'],qty:2,maxW:16}],
   'Bath':[{role:'Vanity',layer:'Task',types:['vanity','sconce'],qty:2,damp:true},{role:'Ceiling',layer:'Ambient',types:['flush'],qty:1,damp:true}],
   'Gallery Hall':[{role:'Gallery wall',layer:'Accent',types:['sconce'],qty:3},{role:'Ceiling',layer:'Ambient',types:['flush'],qty:2}],
   'Study':[{role:'Ceiling',layer:'Ambient',types:['pendant','flush'],qty:1},{role:'Desk',layer:'Task',types:['table-lamp'],qty:1,maxW:24},{role:'Shelving',layer:'Accent',types:['sconce'],qty:2}],
@@ -447,6 +480,7 @@ function pickFor(slot, sc, used, colls){
     if (slot.wet && p.rating !== 'Wet') continue;
     if (slot.damp && !/Damp|Wet/.test(p.rating)) continue;
     if (slot.maxW && p.w > slot.maxW) continue;
+    if (slot.minW && p.w && p.w < slot.minW) continue;
     let s = sc[p.id] + (colls.has(p.coll) ? 1.5 : 0) + slot.types.indexOf(p.type) * -.3;
     if (s > bs) { bs = s; best = p; }
   }
@@ -583,6 +617,7 @@ async function claudeCompose(brief){
     rooms: [...sel.rooms],
     ids: [...new Set([...favorites, ...shortlist(brief).map(p => p.id)])],
     favorites: favorites.map(id => BY[id].remote ? {...BY[id]} : id),
+    settingNote: sel.setting.size ? SETTINGS[[...sel.setting][0]]?.note || '' : '',
     moodCount: canImages ? mood.length : 0,
     hasPlan: canImages && !!plan,
   };
@@ -802,7 +837,7 @@ const SAMPLE = {
   ]
 };
 $('#brief').value = SAMPLE.brief;
-['Modern Classical','Mediterranean'].forEach(v => sel.style.add(v)); sel.setting.add('Midwest'); sel.client.add('Art Collector'); sel.mood.add('Warm & Low');
+['Modern Classical','Mediterranean'].forEach(v => sel.style.add(v)); sel.setting.add('Midwest Estate'); sel.client.add('Art Collector'); sel.mood.add('Warm & Low');
 ['Entry','Living','Dining','Kitchen','Primary Bedroom','Bath','Exterior'].forEach(r => sel.rooms.add(r));
 syncChips();
 render(SAMPLE);
