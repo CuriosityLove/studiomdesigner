@@ -53,6 +53,12 @@ window.buildStudioMPdf = function (pkg, BY, IMG, opts) {
   const order = []; pkg.rooms.forEach(r => r.items.forEach(i => { if (!order.includes(i.id)) order.push(i.id); }));
   const num = id => String(order.indexOf(id) + 1).padStart(2, '0');
   const pieces = pkg.rooms.reduce((a, r) => a + r.items.reduce((b, i) => b + i.qty, 0), 0);
+  const isFav = id => (pkg.favorites || []).includes(id);
+  const pick = (x, y) => {   // small red outlined "YOUR PICK" tag
+    font(500, 5.8, RED); const t = 'YOUR PICK', w = doc.getTextWidth(t) + 1.2 * (t.length - 1) + 10;
+    doc.setDrawColor(...RED); doc.setLineWidth(.6); doc.rect(x, y - 8.5, w, 11, 'S'); doc.text(t, x + 5, y, { charSpace: 1.2 });
+    return w;
+  };
   const date = opts.date || new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
   const title = pkg.title || 'Lighting Package';
 
@@ -68,7 +74,7 @@ window.buildStudioMPdf = function (pkg, BY, IMG, opts) {
   newPage(true);
   rule(M, 64, W - M, 2.5);
   label('Lighting Package', M, 84);
-  label(`${date}  ·  ${pkg.rooms.length} rooms  ·  ${pieces} fixtures`, W - M, 84, MUTE, 'right');
+  label(`${date}  ·  ${pkg.rooms.length} rooms  ·  ${pieces} fixtures${(pkg.favorites || []).length ? `  ·  ${pkg.favorites.length} of your picks` : ''}`, W - M, 84, MUTE, 'right');
   const heroId = BY[pkg.hero] ? pkg.hero : order[0];
   const hx = cx(7), hw = span(5), hy = 104, hh = 400;
   plate(heroId, hx, hy, hw, hh, .06);
@@ -119,6 +125,7 @@ window.buildStudioMPdf = function (pkg, BY, IMG, opts) {
       label(p.coll, x + cw, y0 + cw + 15, MUTE, 'right');
       font(400, 8.5); para(p.name, x, y0 + cw + 29, cw, 10.5, 2);
       font(300, 7, MUTE); doc.text(p.designer.toUpperCase(), x, y0 + cw + 52, { charSpace: .8 });
+      if (isFav(id)) pick(x, y0 + cw + 70);
     });
   }
 
@@ -142,6 +149,7 @@ window.buildStudioMPdf = function (pkg, BY, IMG, opts) {
         const lx = ix + 22 + doc.getTextWidth(String(it.role).toUpperCase()) * (6.8 / 6.3) + 1.6 * String(it.role).length + 12;
         doc.setDrawColor(...INK); doc.setLineWidth(.6); doc.rect(lx, y0 + 2, lw, 11, 'S'); doc.text(lt, lx + 5, y0 + 10, { charSpace: 1.4 });
         font(500, 8.5); doc.text(`× ${it.qty}`, lx + lw + 10, y0 + 10);
+        if (isFav(it.id)) pick(lx + lw + 10 + doc.getTextWidth(`× ${it.qty}`) + 12, y0 + 10.5);
         font(400, 13); doc.text(p.coll, ix, y0 + 32);
         font(300, 9, MUTE); para(p.name, ix, y0 + 45, iw, 11, 1);
         font(300, 9.5); const wy = para(it.why, ix, y0 + 62, iw, 13, 4);

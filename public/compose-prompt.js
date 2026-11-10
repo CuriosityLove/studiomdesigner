@@ -4,9 +4,23 @@
 (function (root) {
   const clip = (s, n) => String(s == null ? '' : s).replace(/\s+/g, ' ').trim().slice(0, n);
 
+  // A favorite is a catalog id, or (for pieces outside the bundled snapshot) a product
+  // record the site looked up live. Records are clipped so they can't carry long text.
+  function cleanFavorite(f, byId) {
+    if (!f) return null;
+    if (typeof f === 'string') return byId[f] ? byId[f] : null;
+    if (byId[f.id]) return byId[f.id];
+    if (!/^[A-Za-z0-9_~.-]{3,40}$/.test(String(f.id || ''))) return null;
+    const p = {};
+    for (const k of ['id', 'type', 'name', 'coll', 'designer', 'finish', 'material', 'dims', 'rating', 'lumens']) p[k] = clip(f[k], 80);
+    p.desc = clip(f.desc, 700);
+    return p;
+  }
+
   function cleanInput(input, byId) {
     input = input || {};
     return {
+      favorites: (Array.isArray(input.favorites) ? input.favorites : []).slice(0, 8).map(f => cleanFavorite(f, byId)).filter(Boolean),
       brief: clip(input.brief, 2000),
       chips: (Array.isArray(input.chips) ? input.chips : []).slice(0, 8).map(c => ({
         label: clip(c && c.label, 30),
@@ -21,10 +35,16 @@
 
   function buildPrompt(raw, byId) {
     const input = cleanInput(raw, byId);
-    const lines = input.ids.map(id => {
-      const p = byId[id];
-      return [p.id, p.type, p.name, p.coll, p.designer, p.finish, p.material, p.dims, p.rating, p.lumens && p.lumens + 'lm', (p.desc || '').slice(0, 260)].join(' | ');
-    }).join('\n');
+    const line = (p, n) => [p.id, p.type, p.name, p.coll, p.designer, p.finish, p.material, p.dims, p.rating, p.lumens && p.lumens + 'lm', (p.desc || '').slice(0, n)].join(' | ');
+    const favIds = new Set(input.favorites.map(p => p.id));
+    const lines = input.ids.filter(id => !favIds.has(id)).map(id => line(byId[id], 260)).join('\n');
+    const favs = input.favorites.length ? `
+
+CLIENT FAVORITES (pieces the client chose themselves)
+${input.favorites.map(p => line(p, 600)).join('\n')}
+- Include every favorite in the package, each in the room where it fits best, with a sensible quantity.
+- Treat them as the creative anchor: read their finishes, materials, scale, silhouette and designer, and let that set the finish story and guide every other selection so the package feels built around them.
+- In "why" for a favorite, say how it anchors the scheme. In "thesis", name the favorites and say what they set in motion.` : '';
     const rooms = input.rooms.length ? input.rooms.join(', ')
       : (input.hasPlan ? 'read the rooms from the floor plan image' : 'Entry, Living, Dining, Kitchen, Primary Bedroom, Bath');
     const chips = input.chips.map(c => `${c.label}: ${c.values.join(', ') || '—'}`).join('\n');
@@ -36,7 +56,7 @@
 PROJECT BRIEF
 ${input.brief || '(no text brief)'}
 ${chips}
-Rooms: ${rooms}${imgNote}
+Rooms: ${rooms}${imgNote}${favs}
 
 HOW TO COMPOSE
 - Choose one finish story (one dominant metal, at most one supporting tone) and repeat it across rooms.

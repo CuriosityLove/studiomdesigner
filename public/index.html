@@ -58,6 +58,22 @@ textarea#brief:focus{outline:none;border-bottom-color:var(--ink)}
 .drop .thumbs img{width:44px;height:44px;object-fit:cover}
 .drop small{color:var(--mute);font-size:.78rem}
 .go{display:flex;align-items:center;gap:20px;flex-wrap:wrap;margin-top:4px}
+.favs{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--hair);padding-top:14px}
+.favrow{display:flex;gap:10px;align-items:stretch}
+.favrow textarea{flex:1;min-width:0;border:1px solid var(--hair);background:transparent;padding:10px 12px;font-size:.88rem;line-height:1.4;resize:vertical}
+.favrow textarea:focus{outline:none;border-color:var(--ink)}
+.favrow .btn{padding:0 20px}
+.favlist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
+.favlist:empty{display:none}
+.fav{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:12px;align-items:center;border:1px solid var(--ink);padding:6px 6px 6px 6px}
+.fav img{width:52px;height:52px;object-fit:contain;background:var(--plate)}
+.fav span{min-width:0}
+.fav small{display:block;font-size:.66rem;color:var(--mute);letter-spacing:.18em;text-transform:uppercase;font-weight:500}
+.fav b{display:block;font-weight:400;font-size:.84rem;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fav button{background:none;border:0;cursor:pointer;font-size:1.2rem;line-height:1;color:var(--mute);padding:4px 8px}
+.fav button:hover{color:var(--ink)}
+#favNote{font-size:.8rem;color:var(--mute);min-height:1.2em}
+.pick{font-size:.64rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);padding:2px 7px}
 .btn{background:var(--ink);color:var(--paper);border:1px solid var(--ink);padding:15px 26px;cursor:pointer;font-size:var(--step--1);font-weight:500;letter-spacing:var(--track);text-transform:uppercase}
 .btn:hover{background:transparent;color:var(--ink)}
 .btn.ghost{background:transparent;color:var(--ink)}
@@ -176,6 +192,15 @@ td{border-bottom:1px solid var(--hair);padding:9px 10px 9px 0;vertical-align:top
     <div class="text">
       <label class="label" for="brief">The brief</label>
       <textarea id="brief" placeholder="A modern classical Mediterranean home in the Midwest…"></textarea>
+      <div class="favs">
+        <label class="label" for="favInput">Pieces you love <span class="mute">· optional</span></label>
+        <div class="favrow">
+          <textarea id="favInput" rows="2" placeholder="Paste Studio M product links or model numbers, one per line"></textarea>
+          <button class="btn ghost" id="favAdd" type="button">Add</button>
+        </div>
+        <ul class="favlist" id="favList" aria-label="Pieces you love"></ul>
+        <span id="favNote" role="status"></span>
+      </div>
       <div class="uploads" id="uploads" hidden>
         <label class="drop" for="mood">
           <span class="label">Mood images</span>
@@ -261,10 +286,10 @@ const ROOMS = {
   'Living':[{role:'Ceiling',layer:'Ambient',types:['chandelier','flush'],qty:1},{role:'Art and wall',layer:'Accent',types:['sconce'],qty:4},{role:'Reading',layer:'Task',types:['table-lamp','floor-lamp'],qty:2}],
   'Dining':[{role:'Over the table',layer:'Ambient',types:['chandelier','linear','pendant'],qty:1},{role:'Sideboard',layer:'Accent',types:['sconce'],qty:2}],
   'Kitchen':[{role:'Island',layer:'Task',types:['linear','pendant'],qty:3},{role:'Perimeter',layer:'Ambient',types:['flush'],qty:4}],
-  'Primary Bedroom':[{role:'Ceiling',layer:'Ambient',types:['flush','chandelier'],qty:1},{role:'Bedside',layer:'Task',types:['sconce','pendant','table-lamp'],qty:2}],
+  'Primary Bedroom':[{role:'Ceiling',layer:'Ambient',types:['flush','chandelier'],qty:1},{role:'Bedside',layer:'Task',types:['sconce','pendant','table-lamp'],qty:2,maxW:16}],
   'Bath':[{role:'Vanity',layer:'Task',types:['vanity','sconce'],qty:2,damp:true},{role:'Ceiling',layer:'Ambient',types:['flush'],qty:1,damp:true}],
   'Gallery Hall':[{role:'Gallery wall',layer:'Accent',types:['sconce'],qty:3},{role:'Ceiling',layer:'Ambient',types:['flush'],qty:2}],
-  'Study':[{role:'Ceiling',layer:'Ambient',types:['pendant','flush'],qty:1},{role:'Desk',layer:'Task',types:['table-lamp'],qty:1},{role:'Shelving',layer:'Accent',types:['sconce'],qty:2}],
+  'Study':[{role:'Ceiling',layer:'Ambient',types:['pendant','flush'],qty:1},{role:'Desk',layer:'Task',types:['table-lamp'],qty:1,maxW:24},{role:'Shelving',layer:'Accent',types:['sconce'],qty:2}],
   'Exterior':[{role:'Facade and doors',layer:'Accent',types:['outdoor'],qty:4,wet:true}],
 };
 const SWATCH = [
@@ -279,7 +304,7 @@ window.SM_SWATCH = swatchFor;
 
 /* ---------- state ---------- */
 const sel = {style:new Set(), setting:new Set(), client:new Set(), finish:new Set(), mood:new Set(), rooms:new Set()};
-let mood = [], plan = null, pkg = null;
+let mood = [], plan = null, pkg = null, favorites = [];
 
 /* ---------- chips ---------- */
 const opts = $('#opts');
@@ -308,6 +333,71 @@ function thumbs(el, files){ el.innerHTML=''; for (const f of files){ const i=new
 $('#mood').onchange = e => { mood = [...e.target.files].slice(0,4); thumbs($('#moodThumbs'), mood); };
 $('#plan').onchange = e => { plan = e.target.files[0] || null; thumbs($('#planThumbs'), plan ? [plan] : []); };
 
+/* ---------- pieces you love ----------
+   Accepts studiomedition.com / studiomlighting.com product links or bare model numbers.
+   Inside Claude only the bundled catalog is available, so a piece outside it falls back to
+   the closest piece from the same collection; the website looks it up live instead. */
+const MAX_FAVS = 8;
+const slugify = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+function parseRefs(text){
+  const out = [], seen = new Set();
+  for (const m of String(text).matchAll(/products\/([A-Za-z0-9_~.-]{3,40})(?:\/([a-z0-9-]{1,60}))?|\b(SM[0-9][A-Za-z0-9-]{3,30})\b/g)) {
+    const model = m[1] || m[3], collSlug = m[2] || '';
+    if (seen.has(model.toUpperCase())) continue;
+    seen.add(model.toUpperCase()); out.push({model, collSlug});
+  }
+  return out;
+}
+function addRemote(p){
+  if (BY[p.id]) return BY[p.id];
+  p.remote = true; CAT.push(p); BY[p.id] = p; TXT[p.id] = textOf(p);
+  return p;
+}
+async function resolveRef({model, collSlug}){
+  const hit = BY[model] ? model : Object.keys(BY).find(k => k.toUpperCase() === model.toUpperCase());
+  if (hit) return {id:hit, how:'exact'};
+  if (!inViewer) {
+    try {
+      const r = await fetch('api/product?model=' + encodeURIComponent(model));
+      if (r.ok) return {id:addRemote(await r.json()).id, how:'live'};
+    } catch {}
+  }
+  if (collSlug) { const p = CAT.find(x => slugify(x.coll) === collSlug && !x.remote); if (p) return {id:p.id, how:'collection'}; }
+  return null;
+}
+function renderFavs(){
+  $('#favList').innerHTML = favorites.map(id => { const p = BY[id]; return `<li class="fav"><img data-id="${esc(p.id)}" src="${im(p.id)}" alt=""><span><small>${esc(p.coll)}</small><b title="${esc(p.name)}">${esc(p.name)}</b></span><button type="button" data-rm="${esc(p.id)}" aria-label="Remove ${esc(p.coll)} ${esc(p.name)}">×</button></li>`; }).join('');
+  document.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { favorites = favorites.filter(id => id !== b.dataset.rm); renderFavs(); $('#favNote').textContent = ''; });
+}
+let favBusy = false;
+async function addFavs(){
+  const box = $('#favInput'), note = $('#favNote');
+  const refs = parseRefs(box.value);
+  if (!refs.length) { note.textContent = box.value.trim() ? 'No Studio M product links or model numbers found there.' : ''; return; }
+  if (favBusy) return; favBusy = true;
+  note.textContent = `Looking up ${refs.length} piece${refs.length > 1 ? 's' : ''}…`;
+  const res = await Promise.all(refs.map(resolveRef));
+  const approx = [], missing = [], full = [];
+  let added = 0;
+  res.forEach((r, i) => {
+    if (!r) { missing.push(refs[i].model); return; }
+    if (favorites.includes(r.id)) return;
+    if (favorites.length >= MAX_FAVS) { full.push(refs[i].model); return; }
+    if (r.how === 'collection') approx.push(`${refs[i].model} (using ${BY[r.id].coll} ${BY[r.id].name})`);
+    favorites.push(r.id); added++;
+  });
+  box.value = ''; renderFavs(); favBusy = false;
+  note.textContent = [
+    added ? `Added ${added}. They'll be included and will steer the rest of the selection.` : '',
+    approx.length ? `Not in this preview's catalog, so the closest piece from the same collection is used: ${approx.join('; ')}.` : '',
+    missing.length ? `Couldn't find ${missing.join(', ')}. Check the link or model number.` : '',
+    full.length ? `Up to ${MAX_FAVS} pieces; skipped ${full.join(', ')}.` : '',
+  ].filter(Boolean).join(' ');
+}
+$('#favAdd').onclick = addFavs;
+$('#favInput').addEventListener('paste', () => setTimeout(addFavs, 0));
+$('#favInput').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addFavs(); } });
+
 /* ---------- local matching engine ---------- */
 const textOf = p => (p.name+' '+p.coll+' '+p.designer+' '+p.finish+' '+p.material+' '+p.desc).toLowerCase();
 const TXT = Object.fromEntries(CAT.map(p => [p.id, textOf(p)]));
@@ -322,6 +412,8 @@ function concepts(brief){
 }
 function finishPref(brief){
   if (sel.finish.size) return [...sel.finish][0].toLowerCase();
+  const f0 = favorites.map(id => BY[id]).find(Boolean);
+  if (f0) for (const [k,re] of Object.entries(FINISH_FAM)) if (re.test(f0.finish)) return k;
   const b = brief.toLowerCase();
   for (const [k,re] of Object.entries(FINISH_FAM)) if (re.test(b)) return k;
   return null;
@@ -329,8 +421,16 @@ function finishPref(brief){
 function scoreAll(brief){
   const cs = concepts(brief), fp = finishPref(brief), sc = {};
   const words = brief.toLowerCase().match(/[a-z]{5,}/g) || [];
+  const favs = favorites.map(id => BY[id]).filter(Boolean);
+  const favTok = [...new Set(favs.flatMap(f => (f.finish + ' ' + f.material).toLowerCase().split(/[^a-z]+/).filter(w => w.length > 3)))];
+  const favDes = new Set(favs.map(f => f.designer).filter(d => !/Maxim|ET2/.test(d)));
+  const favColl = new Set(favs.map(f => f.coll));
   for (const p of CAT) {
     const t = TXT[p.id]; let s = 0;
+    const fm = (p.finish + ' ' + p.material).toLowerCase();
+    for (const w of favTok) if (fm.includes(w)) s += .8;
+    if (favDes.has(p.designer)) s += 1.5;
+    if (favColl.has(p.coll)) s += 2;
     for (const c of cs) for (const w of (LEX[c]||[])) if (t.includes(w)) s += 1;
     for (const w of words) if (t.includes(w)) s += .4;
     if (fp && FINISH_FAM[fp].test(p.finish + ' ' + p.material)) s += 3;
@@ -346,6 +446,7 @@ function pickFor(slot, sc, used, colls){
     if (!slot.types.includes(p.type) || used.has(p.id)) continue;
     if (slot.wet && p.rating !== 'Wet') continue;
     if (slot.damp && !/Damp|Wet/.test(p.rating)) continue;
+    if (slot.maxW && p.w > slot.maxW) continue;
     let s = sc[p.id] + (colls.has(p.coll) ? 1.5 : 0) + slot.types.indexOf(p.type) * -.3;
     if (s > bs) { bs = s; best = p; }
   }
@@ -358,14 +459,42 @@ function alternatives(item, room){
     .sort((a,b) => sc[b.id]-sc[a.id]).slice(0, 12).map(p => p.id);
 }
 function firstSentence(d){ const m = (d||'').match(/^.*?[.!?](\s|$)/); return m ? m[0].trim() : d; }
+const slotFits = (p, slot) => slot.types.includes(p.type) && (!slot.wet || p.rating === 'Wet') && (!slot.damp || /Damp|Wet/.test(p.rating));
+const layerFor = p => /sconce|outdoor/.test(p.type) ? 'Accent' : /lamp|vanity/.test(p.type) ? 'Task' : 'Ambient';
+const pickWhy = p => `Your pick, and the anchor for this room. ${[p.material, p.finish].filter(Boolean).join(' with ')}${p.material || p.finish ? '. ' : ''}${firstSentence(p.desc)}`;
+// Favorites the composition left out go into the first room whose slots take their type.
+function ensureFavorites(pkg){
+  const have = new Set(pkg.rooms.flatMap(r => r.items.map(i => i.id)));
+  for (const id of favorites) {
+    if (have.has(id)) continue;
+    const p = BY[id]; if (!p) continue;
+    let room = pkg.rooms.find(r => (ROOMS[r.name] || []).some(sl => slotFits(p, sl)));
+    if (!room && p.type === 'outdoor') { room = {name:'Exterior', note:ROOM_NOTES.Exterior, items:[]}; pkg.rooms.push(room); }
+    room = room || pkg.rooms[0];
+    room.items.unshift({id, qty: p.type === 'sconce' ? 2 : 1, role:'Your pick', layer:layerFor(p), why:pickWhy(p)});
+    have.add(id);
+  }
+  pkg.favorites = favorites.filter(id => have.has(id));
+  return pkg;
+}
 function engineCompose(brief){
   const {sc, cs, fp} = scoreAll(brief);
   const rooms = sel.rooms.size ? [...sel.rooms] : ['Entry','Living','Dining','Kitchen','Primary Bedroom','Bath'];
-  const used = new Set(), colls = new Set(), out = [];
+  const used = new Set(favorites), colls = new Set(favorites.map(id => BY[id]?.coll)), out = [];
+  const pinned = new Map();
+  for (const id of favorites) {
+    const p = BY[id]; if (!p) continue;
+    outer: for (const r of rooms) for (const slot of ROOMS[r] || []) {
+      const key = r + '|' + slot.role;
+      if (!pinned.has(key) && slotFits(p, slot)) { pinned.set(key, p); break outer; }
+    }
+  }
   for (const r of rooms) {
     const items = [];
     for (const slot of ROOMS[r]) {
-      const p = pickFor(slot, sc, used, colls); if (!p) continue;
+      const fav = pinned.get(r + '|' + slot.role);
+      const p = fav || pickFor(slot, sc, used, colls); if (!p) continue;
+      if (fav) { items.push({id:p.id, qty: slot.role==='Island' ? (p.type==='linear' || p.w > 24 ? 1 : p.w > 15 ? 2 : 3) : slot.qty, role:slot.role, layer:slot.layer, why:pickWhy(p)}); continue; }
       used.add(p.id); colls.add(p.coll);
       const qty = slot.role==='Island' ? (p.type==='linear' || p.w > 24 ? 1 : p.w > 15 ? 2 : 3) : slot.qty;
       const mat = [p.material, p.finish].filter(Boolean).join(' with ');
@@ -375,17 +504,18 @@ function engineCompose(brief){
   }
   const fins = topFinishes(out);
   const label = [...sel.style].join(' / ') || (cs[0] ? cs[0].replace(/\b\w/g,c=>c.toUpperCase()) : 'A Considered House');
-  return {
+  const favNames = favorites.map(id => BY[id]?.coll).filter(Boolean);
+  return ensureFavorites({
     title: label + (sel.setting.size ? ', ' + [...sel.setting][0] : ''),
     brief, source:'engine',
-    thesis:`One finish family, ${fins[0] || 'a single metal'}, threads through every room so the house reads as one composition. Natural materials and diffused glass do the work of warmth, and each room is built in layers: an ambient source overhead, task light where hands are busy, and accent light on walls and objects.`,
+    thesis:(favNames.length ? `Built around ${favNames.length > 1 ? favNames.slice(0, -1).join(', ') + ' and ' + favNames.at(-1) : favNames[0]}, the pieces you chose. Their finishes and materials set the direction for everything else. ` : '') + `One finish family, ${fins[0] || 'a single metal'}, threads through every room so the house reads as one composition. Natural materials and diffused glass do the work of warmth, and each room is built in layers: an ambient source overhead, task light where hands are busy, and accent light on walls and objects.`,
     principles:[
       {h:'One metal, many materials', t:`Keep ${fins[0] || 'the metal'} constant and let glass, stone and fiber change from room to room.`},
       {h:'Three layers per room', t:'Ambient overhead, task at the work surface, accent on walls and art. Each is dimmed on its own.'},
       {h:'Families repeat', t:'Where a collection appears twice, it ties adjacent rooms together through the sightline.'}],
     palette:{finishes:fins, materials:topMaterials(out), cct: sel.mood.has('Bright & Crisp') ? '3000K' : '2700K–3000K'},
     rooms: out
-  };
+  });
 }
 const ROOM_NOTES = {
   'Entry':'The first impression. One statement piece sets the language for the house, with a quieter pair on the walls.',
@@ -451,7 +581,8 @@ async function claudeCompose(brief){
     brief,
     chips: GROUPS.filter(g => g.key !== 'rooms').map(g => ({label:g.label, values:[...sel[g.key]]})),
     rooms: [...sel.rooms],
-    ids: shortlist(brief).map(p => p.id),
+    ids: [...new Set([...favorites, ...shortlist(brief).map(p => p.id)])],
+    favorites: favorites.map(id => BY[id].remote ? {...BY[id]} : id),
     moodCount: canImages ? mood.length : 0,
     hasPlan: canImages && !!plan,
   };
@@ -459,7 +590,7 @@ async function claudeCompose(brief){
   // validate
   const rooms2 = (data.rooms||[]).map(r => ({name:String(r.name||'Room'), note:String(r.note||''), items:(r.items||[]).filter(i => BY[i.id]).map(i => ({id:i.id, qty:Math.max(1,Math.min(24,parseInt(i.qty)||1)), role:String(i.role||''), layer:/task|accent/i.test(i.layer)?(/task/i.test(i.layer)?'Task':'Accent'):'Ambient', why:String(i.why||'')}))})).filter(r => r.items.length);
   if (!rooms2.length) throw {code:'empty_package'};
-  return {title:String(data.title||'Lighting Package'), brief, source:'claude', thesis:String(data.thesis||''), principles:(data.principles||[]).slice(0,3).map(p=>({h:String(p.h||''),t:String(p.t||'')})), palette:{finishes:(data.palette?.finishes||topFinishes(rooms2)).map(String).slice(0,4), materials:(data.palette?.materials||topMaterials(rooms2)).map(String).slice(0,5), cct:String(data.palette?.cct||'2700K–3000K')}, hero:BY[data.hero]?data.hero:null, rooms:rooms2};
+  return ensureFavorites({title:String(data.title||'Lighting Package'), brief, source:'claude', thesis:String(data.thesis||''), principles:(data.principles||[]).slice(0,3).map(p=>({h:String(p.h||''),t:String(p.t||'')})), palette:{finishes:(data.palette?.finishes||topFinishes(rooms2)).map(String).slice(0,4), materials:(data.palette?.materials||topMaterials(rooms2)).map(String).slice(0,5), cct:String(data.palette?.cct||'2700K–3000K')}, hero:BY[data.hero]?data.hero:null, rooms:rooms2});
 }
 
 /* ---------- render ---------- */
@@ -467,11 +598,13 @@ function currentBrief(){ return $('#brief').value.trim(); }
 function plates(p){ const seen=[]; p.rooms.forEach(r=>r.items.forEach(i=>{ if(!seen.includes(i.id)) seen.push(i.id); })); return seen; }
 const pn = n => String(n).padStart(2,'0');
 const BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
-const im = id => (window.SM_IMG && window.SM_IMG[id]) || (window.claude ? BLANK : `img/${id}.jpg`);
+const im = id => (window.SM_IMG && window.SM_IMG[id]) || (BY[id]?.remote ? `api/product-image/${encodeURIComponent(id)}` : window.claude ? BLANK : `img/${id}.jpg`);
 window.__onPlates = () => document.querySelectorAll('img[data-id]').forEach(i => { i.src = im(i.dataset.id); });
 if (window.SM_IMG) setTimeout(window.__onPlates);
 function render(p){
   pkg = p;
+  const isFav = id => (p.favorites || []).includes(id);
+  const favMark = id => isFav(id) ? '<span class="pick">Your pick</span>' : '';
   const order = plates(p), num = id => pn(order.indexOf(id)+1);
   const hero = BY[p.hero] || BY[order[0]];
   const date = new Date().toLocaleDateString('en-US',{day:'numeric',month:'long',year:'numeric'});
@@ -481,7 +614,7 @@ function render(p){
   const layers = ['Ambient','Task','Accent'];
   $('#package').innerHTML = `
   <div class="cover fade">
-    <div class="meta"><span class="label">Lighting Package</span><span class="label mute num">${esc(date)} · ${p.rooms.length} rooms · ${pieces} fixtures</span></div>
+    <div class="meta"><span class="label">Lighting Package</span><span class="label mute num">${esc(date)} · ${p.rooms.length} rooms · ${pieces} fixtures${(p.favorites||[]).length ? ` · built around ${p.favorites.length} of your picks` : ''}</span></div>
     <h2>${esc(p.title)}</h2>
     ${p.brief ? `<p class="quote">${esc(p.brief)}</p>` : ''}
     <figure>
@@ -512,7 +645,7 @@ function render(p){
 
   <section class="section">
     <span class="label">The collection</span>
-    <div class="body sheet">${order.map(id=>{const x=BY[id];return `<a href="${x.url}" target="_blank" rel="noopener"><div class="plate"><img data-id="${x.id}" src="${im(x.id)}" alt="${esc(x.name)}" loading="lazy"></div><div class="t"><span class="pn">${num(id)}</span><span class="c">${esc(x.coll)}</span></div><span class="n">${esc(x.name)}</span><span class="c">${esc(x.designer)}</span></a>`}).join('')}</div>
+    <div class="body sheet">${order.map(id=>{const x=BY[id];return `<a href="${x.url}" target="_blank" rel="noopener"><div class="plate"><img data-id="${x.id}" src="${im(x.id)}" alt="${esc(x.name)}" loading="lazy"></div><div class="t"><span class="pn">${num(id)}</span><span class="c">${esc(x.coll)}</span></div><span class="n">${esc(x.name)}</span><span class="c">${esc(x.designer)}</span>${favMark(id)}</a>`}).join('')}</div>
   </section>
 
   ${p.rooms.map((r,ri)=>`
@@ -522,7 +655,7 @@ function render(p){
       <div class="item">
         <div class="plate"><img data-id="${x.id}" src="${im(x.id)}" alt="${esc(x.name)}" loading="lazy"></div>
         <div class="info">
-          <div class="top"><span class="pn">${num(i.id)}</span><span class="label">${esc(i.role)}</span><span class="layer">${esc(i.layer)}</span><span class="qty">× ${i.qty}</span></div>
+          <div class="top"><span class="pn">${num(i.id)}</span><span class="label">${esc(i.role)}</span><span class="layer">${esc(i.layer)}</span><span class="qty">× ${i.qty}</span>${favMark(i.id)}</div>
           <h5>${esc(x.coll)} <span class="mute">${esc(x.name)}</span></h5>
           <p class="why">${esc(i.why)}</p>
           <div class="spec num"><span>${esc(x.designer)}</span><span>${esc(x.finish)}${x.material?' / '+esc(x.material):''}</span><span>${esc(x.dims)}</span>${x.lumens?`<span>${esc(x.lumens)} lm</span>`:''}${x.rating?`<span>${esc(x.rating)} rated</span>`:''}<span>${esc(x.id)}</span></div>
@@ -572,6 +705,19 @@ function wireOutput(){
 }
 const loaded = {};
 function loadScript(src){ return loaded[src] || (loaded[src] = new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => { delete loaded[src]; rej(new Error('load ' + src)); }; document.head.appendChild(s); })); }
+// Pieces looked up live arrive as WebP from the image proxy; the PDF needs JPEG data.
+function toJpeg(id){
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
+      const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0);
+      BY[id].iw = c.width; BY[id].ih = c.height;
+      res(c.toDataURL('image/jpeg', .85));
+    };
+    img.onerror = rej; img.src = im(id);
+  });
+}
 let pdfBusy = false;
 async function downloadPdf(){
   if (pdfBusy) return; pdfBusy = true;
@@ -584,7 +730,9 @@ async function downloadPdf(){
     if (!window.SM_IMG && !inViewer) await loadScript('plates.js');
     if (!window.SM_IMG) await new Promise(r => { const t = setInterval(() => { if (window.SM_IMG) { clearInterval(t); r(); } }, 200); });
     const src = {claude:'Composed with Claude from the Studio M collection.', engine:"Composed with Studio M's matching engine.", sample:'Example package.'}[pkg.source];
-    const doc = window.buildStudioMPdf(pkg, BY, window.SM_IMG, {sourceNote: src});
+    const IMG = {...window.SM_IMG};
+    for (const id of plates(pkg)) if (!IMG[id]) { try { IMG[id] = await toJpeg(id); } catch {} }
+    const doc = window.buildStudioMPdf(pkg, BY, IMG, {sourceNote: src});
     const filename = (pkg.title.replace(/[^\w]+/g,'-').replace(/^-|-$/g,'').toLowerCase() || 'lighting-package') + '-studio-m.pdf';
     if (dl) await dl.save({filename, data: doc.output('blob')}); else doc.save(filename);
     say('PDF ready.');

@@ -11,9 +11,15 @@ A lighting-package composer for **design.studiomlighting.com**. Designers and ho
 | `public/img/` | Product photos, 420 px JPEG. |
 | `public/compose-prompt.js` | Builds the Claude prompt. Used by the server, so the browser never sends its own prompt. |
 | `public/pdf.js`, `pdf-fonts.js`, `plates.js` | Branded PDF lookbook (jsPDF), the Jost font, and embedded images for the PDF. |
-| `server.js` | Serves `public/` and `POST /api/compose`, which calls Claude (Opus 5.5) with the brief, the shortlist and any images. |
+| `server.js` | Serves `public/`, `POST /api/compose` (calls Claude with the brief, the shortlist, any images and the visitor's picks) and the live product lookup. |
 
 If the server has no API key, or Claude is busy, the page falls back to its built-in matching engine, so it always produces a package.
+
+### Pieces you love
+
+Visitors can paste Studio M product links (studiomedition.com or studiomlighting.com) or model numbers into **Pieces you love**. Each piece is always included in the package, placed in the room that suits its type, and marked "Your pick" on the page and in the PDF. The picks also steer everything else: their finishes, materials, designers and collections are weighted up in the matching engine, and Claude is told to treat them as the creative anchor.
+
+Pieces outside the bundled catalog are looked up live by `GET /api/product?model=…`, which reads only Studio M's own product page, with images served through `/api/product-image/<model>`. Up to 8 picks per package.
 
 ## Run locally
 
@@ -44,12 +50,13 @@ Then open http://localhost:3000. Without the key the site still works using the 
 | Variable | Default | Purpose |
 |---|---|---|
 | `ANTHROPIC_API_KEY` | none | Turns on Claude composition. |
-| `CLAUDE_MODEL` | `claude-opus-5-5` | Model used for composition. |
+| `CLAUDE_MODEL` | `claude-sonnet-5-5` | Model used for composition. Set `claude-opus-5-5` for the most considered writing (slower, about twice the cost). |
+| `CLAUDE_EFFORT` | `low` | How long Claude deliberates: `low`, `medium` or `high`. Higher is slower. |
 | `PER_IP_LIMIT` | `8` | Compositions per visitor per window. |
 | `WINDOW_MINUTES` | `10` | Length of that window. |
 | `DAILY_LIMIT` | `300` | Compositions per day across all visitors, as a cost ceiling. |
 
-Each composition is one Claude request of roughly 25–35k input tokens.
+Each composition is one Claude request of roughly 15–35k input tokens; at the defaults that is around 5–15 cents.
 
 ## Updating the catalog
 
